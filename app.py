@@ -10,6 +10,7 @@ from src.question_parser import parse_questions
 from src.quiz_engine import (
     calculate_score,
     shuffle_questions,
+    shuffle_questions_grouped,
     shuffle_options,
     filter_by_topics,
     filter_by_types,
@@ -96,8 +97,6 @@ def question_status_icon(i):
     """Return an emoji marker for a question's current status."""
     flagged = i in st.session_state.flagged_indexes
     answered = is_answered(i)
-    if flagged and answered:
-        return "🚩"          # flagged (takes priority visually)
     if flagged:
         return "🚩"
     if answered:
@@ -256,6 +255,11 @@ def show_setup_page():
         shuffle_q = st.checkbox("Shuffle question order", value=False)
     with c2:
         shuffle_o = st.checkbox("Shuffle answer options (choice questions)", value=False)
+    keep_cases = st.checkbox(
+        "Keep case-study questions together when shuffling", value=True,
+        help="Case-study questions that share a scenario stay contiguous "
+             "(in order); only the position of each case block is randomised.",
+    )
 
     st.markdown("---")
     st.markdown("### ⏱️ Timed Mode")
@@ -271,7 +275,10 @@ def show_setup_page():
             else:
                 sess = working
                 if shuffle_q:
-                    sess = shuffle_questions(sess)
+                    if keep_cases:
+                        sess = shuffle_questions_grouped(sess)
+                    else:
+                        sess = shuffle_questions(sess)
                 if shuffle_o:
                     sess = [shuffle_options(q) for q in sess]
                 st.session_state.questions = sess

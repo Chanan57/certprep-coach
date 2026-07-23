@@ -9,7 +9,6 @@ def _norm(ans):
 
 
 def calculate_score(user_answers, questions):
-    """Only auto-gradable questions count toward the score."""
     correct = 0
     gradable = 0
     non_gradable = 0
@@ -32,8 +31,39 @@ def calculate_score(user_answers, questions):
 
 
 def shuffle_questions(questions):
+    """Plain shuffle of all questions (does not preserve case-study grouping)."""
     out = questions.copy()
     random.shuffle(out)
+    return out
+
+
+def shuffle_questions_grouped(questions):
+    """
+    Shuffle questions while keeping case-study questions together.
+
+    Each set of questions that share the same non-empty ``case_id`` is treated
+    as a single block (kept in its original relative order). Standalone
+    questions are their own blocks. The ORDER OF BLOCKS is shuffled, so case
+    studies stay contiguous but the overall sequence is randomised.
+    """
+    blocks = []          # list of lists (each a block of 1+ questions)
+    case_block = {}      # case_id -> the list object for that case
+
+    for q in questions:
+        cid = q.get("case_id")
+        if cid:
+            if cid not in case_block:
+                case_block[cid] = []
+                blocks.append(case_block[cid])
+            case_block[cid].append(q)
+        else:
+            blocks.append([q])
+
+    random.shuffle(blocks)
+
+    out = []
+    for block in blocks:
+        out.extend(block)
     return out
 
 

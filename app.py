@@ -7,6 +7,7 @@ import pandas as pd
 
 from src.pdf_reader import extract_pdf_content
 from src.question_parser import parse_questions
+from src import library as lib
 from src.quiz_engine import (
     calculate_score,
     shuffle_questions,
@@ -50,6 +51,7 @@ def initialise_session_state():
         "time_limit_minutes": 30,
         "start_time": None,
         "image_dir": None,
+        "source_label": "",
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -71,6 +73,7 @@ def full_reset():
     st.session_state.all_questions = []
     st.session_state.questions = []
     st.session_state.show_setup = False
+    st.session_state.source_label = ""
 
 
 def qid(question):
@@ -78,13 +81,18 @@ def qid(question):
     return f"{question.get('topic','G')}__{question.get('question_number','?')}__{question.get('type','?')}"
 
 
+def _load_questions_into_state(questions, source_label):
+    st.session_state.all_questions = questions
+    st.session_state.source_label = source_label
+    reset_quiz_progress()
+    st.session_state.show_setup = True
+
+
 # ---------------------------------------------------------------------------
 # Question status helpers (used by the navigator)
 # ---------------------------------------------------------------------------
 
 def is_answered(i):
-    """A question counts as answered if it has a non-empty choice answer or
-    a self-assessment recorded."""
     ans = st.session_state.user_answers.get(i)
     if ans:
         return True
@@ -94,7 +102,6 @@ def is_answered(i):
 
 
 def question_status_icon(i):
-    """Return an emoji marker for a question's current status."""
     flagged = i in st.session_state.flagged_indexes
     answered = is_answered(i)
     if flagged:
@@ -114,14 +121,12 @@ def goto_question(i):
 # ---------------------------------------------------------------------------
 
 def render_navigator():
-    """Render a sidebar navigator to jump to any question, with status markers."""
     questions = st.session_state.questions
     total = len(questions)
     current = st.session_state.current_question_index
 
     st.sidebar.header("🧭 Navigator")
 
-    # Live counters
     answered = sum(1 for i in range(total) if is_answered(i))
     flagged = len(st.session_state.flagged_indexes)
     remaining = total - answered
@@ -130,7 +135,6 @@ def render_navigator():
     c2.metric("🚩 Flag", flagged)
     c3.metric("⚪ Left", remaining)
 
-    # Fast "jump to #" dropdown (labels show the question number + status).
     labels = []
     for i, q in enumerate(questions):
         labels.append(f"{question_status_icon(i)} Q{q.get('question_number', i + 1)}")
@@ -144,12 +148,10 @@ def render_navigator():
     if picked != current:
         goto_question(picked)
 
-    # Optional filter to declutter long sets.
     view = st.sidebar.radio(
         "Show", ["All", "Flagged", "Unanswered"], horizontal=True, key="nav_view"
     )
 
-    # Compact clickable grid of question buttons.
     st.sidebar.caption("Click a number to jump:")
     per_row = 5
     row = None
@@ -164,7 +166,6 @@ def render_navigator():
         col = row[shown % per_row]
         icon = question_status_icon(i)
         label = f"{icon}{i + 1}"
-        # Highlight the current question.
         btn_type = "primary" if i == current else "secondary"
         if col.button(label, key=f"nav_btn_{i}", type=btn_type, use_container_width=True):
             goto_question(i)
@@ -177,52 +178,101 @@ def render_navigator():
 
 
 # ---------------------------------------------------------------------------
-# Home / upload
+# Home / library + upload
 # ---------------------------------------------------------------------------
 
 def show_home_page():
     st.title("📘 CertPrep Coach")
     st.subheader("PDF to Practice Quiz Tool — Version 3")
-    st.info(
-        "Upload a practice-question PDF. The app extracts questions and images, "
-        "detects question types, groups case studies, and provides interactive "
-        "drag-and-drop and dropdown widgets."
-    )
 
-    uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
+    tab_library, tab_upload = st.tabs(["📚 Question Library", "⬆️ Upload a PDF"])
 
-    if uploaded_file is not None:
-        if st.session_state.image_dir is None:
-            st.session_state.image_dir = tempfile.mkdtemp(prefix="certprep_img_")
-
-        with st.spinner("Reading PDF, extracting images, and parsing questions..."):
-            file_bytes = uploaded_file.read()
-            full_text, page_images = extract_pdf_content(
-                file_bytes, st.session_state.image_dir
+    # --- Library tab (pre-loaded exams, no upload needed) ---
+    with tab_library:
+        summary = lib.library_summary()
+        if not summary:
+            st.info(
+                "No exams found yet. Create a **`Sample Inputs`** folder in the "
+                "project root with one subfolder per exam (e.g. `MD 102`, "
+                "`SC 401`) and put the exam PDFs inside each. Then reload."
             )
-            questions = parse_questions(full_text, page_images)
-
-        if len(questions) == 0:
-            st.error("No questions could be parsed from this PDF.")
-            with st.expander("Show extracted raw text for troubleshooting"):
-                st.text_area("Extracted Text", full_text[:20000], height=400)
         else:
-            st.success(f"Parsed {len(questions)} questions.")
-            st.session_state.all_questions = questions
-            reset_quiz_progress()
-            st.session_state.show_setup = True
+            st.caption("Pick an exam to load its question bank instantly "
+                       "(parsed once, then cached).")
+            exam_names = [s["exam"] for s in summary]
+            chosen = st.selectbox("Choose an exam", exam_names, key="lib_exam")
 
-            counts = {}
-            for q in questions:
-                counts[q["type"]] = counts.get(q["type"], 0) + 1
-            cols = st.columns(len(counts))
-            for col, (t, c) in zip(cols, counts.items()):
-                col.metric(TYPE_LABELS.get(t, t), c)
+            detail = next(s for s in summary if s["exam"] == chosen)
+            st.caption(f"📄 {detail['pdf_count']} PDF(s): "
+                       + ", ".join(detail["pdfs"]))
 
-            n_case = sum(1 for q in questions if q["is_case_study"])
-            n_img = sum(1 for q in questions if q["images"])
-            st.caption(f"📁 {n_case} case-study question(s) · 🖼️ {n_img} with images")
-            st.rerun()
+            colA, colB = st.columns([1, 1])
+            with colA:
+                if st.button("📚 Load this exam", type="primary", key="lib_load"):
+                    _load_exam_with_progress(chosen, force=False)
+            with colB:
+                if st.button("🔄 Re-parse (ignore cache)", key="lib_reparse"):
+                    _load_exam_with_progress(chosen, force=True)
+
+            # Cache status
+            rows, cached = lib.cache_info()
+            if rows:
+                st.caption(f"🗄️ Cache: {rows} PDF(s) stored · exams: {', '.join(cached)}")
+
+    # --- Upload tab (fallback / ad-hoc) ---
+    with tab_upload:
+        st.caption("Upload a one-off PDF that isn't in the library.")
+        uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
+        if uploaded_file is not None:
+            if st.session_state.image_dir is None:
+                st.session_state.image_dir = tempfile.mkdtemp(prefix="certprep_img_")
+            with st.spinner("Reading PDF, extracting images, and parsing questions..."):
+                file_bytes = uploaded_file.read()
+                full_text, page_images = extract_pdf_content(
+                    file_bytes, st.session_state.image_dir)
+                questions = parse_questions(full_text, page_images)
+            if len(questions) == 0:
+                st.error("No questions could be parsed from this PDF.")
+                with st.expander("Show extracted raw text for troubleshooting"):
+                    st.text_area("Extracted Text", full_text[:20000], height=400)
+            else:
+                st.success(f"Parsed {len(questions)} questions.")
+                _load_questions_into_state(questions, uploaded_file.name)
+                _show_counts(questions)
+                st.rerun()
+
+
+def _load_exam_with_progress(exam, force):
+    prog = st.progress(0.0)
+    status = st.empty()
+
+    def cb(done, total, fname):
+        status.caption(f"Parsing {fname} ({done}/{total})...")
+        prog.progress(done / max(total, 1))
+
+    with st.spinner(f"Loading {exam}..."):
+        questions = lib.load_exam(exam, force=force, progress=cb)
+    status.empty()
+
+    if not questions:
+        st.error(f"No questions found for {exam}.")
+        return
+    st.success(f"Loaded {len(questions)} questions from {exam}.")
+    _load_questions_into_state(questions, exam)
+    _show_counts(questions)
+    st.rerun()
+
+
+def _show_counts(questions):
+    counts = {}
+    for q in questions:
+        counts[q["type"]] = counts.get(q["type"], 0) + 1
+    cols = st.columns(len(counts))
+    for col, (t, c) in zip(cols, counts.items()):
+        col.metric(TYPE_LABELS.get(t, t), c)
+    n_case = sum(1 for q in questions if q["is_case_study"])
+    n_img = sum(1 for q in questions if q["images"])
+    st.caption(f"📁 {n_case} case-study question(s) · 🖼️ {n_img} with images")
 
 
 # ---------------------------------------------------------------------------
@@ -231,6 +281,8 @@ def show_home_page():
 
 def show_setup_page():
     st.title("⚙️ Configure Your Practice Session")
+    if st.session_state.source_label:
+        st.caption(f"Source: **{st.session_state.source_label}**")
     all_q = st.session_state.all_questions
 
     topics = sorted({q.get("topic", "General") for q in all_q})
@@ -290,7 +342,7 @@ def show_setup_page():
                 st.session_state.start_time = time.time()
                 st.rerun()
     with cb:
-        if st.button("📄 Upload a different PDF"):
+        if st.button("📄 Choose a different exam / PDF"):
             full_reset()
             st.rerun()
 
@@ -414,7 +466,6 @@ def render_dragdrop(question, idx):
 # ---- Interactive HOTSPOT ---------------------------------------------------
 
 def parse_hotspot_lines(raw):
-    """Parse 'Label = opt1 | opt2 | opt3' lines into [(label, [opts]), ...]."""
     groups = []
     for line in raw.splitlines():
         line = line.strip()
@@ -517,7 +568,6 @@ def show_quiz_page():
     total = len(questions)
     q = questions[idx]
 
-    # Sidebar navigator (jump to any question).
     render_navigator()
 
     st.title("📝 Practice Quiz")
@@ -533,11 +583,9 @@ def show_quiz_page():
     h3.caption(f"✅ {len(st.session_state.user_answers) + len(st.session_state.self_assessed)} done | "
                f"🚩 {len(st.session_state.flagged_indexes)} flagged")
 
-    # Question-type banner (mirrors 'DRAG DROP' / 'HOTSPOT' shown at top of PDF).
     if q["type"] in ("HOTSPOT", "DRAG DROP", "SIMULATION"):
         st.markdown(f"#### 🧩 {TYPE_LABELS.get(q['type']).upper()}")
 
-    # Case-study scenario panel (text only; exhibits shown in the body).
     if q.get("is_case_study") and q.get("case_scenario"):
         label = q.get("case_label") or "Case study"
         pos, size = q.get("case_position"), q.get("case_size")
@@ -553,7 +601,6 @@ def show_quiz_page():
         st.write(q["question_text"] or "_(See exhibit image below.)_")
         render_question_body(q, idx, show_choice_images=True)
 
-    # Flag
     st.markdown("---")
     flagged = idx in st.session_state.flagged_indexes
     if st.button("🚩 Unflag" if flagged else "🚩 Flag as difficult", key=f"flag_{idx}"):

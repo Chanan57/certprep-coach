@@ -78,6 +78,106 @@ def qid(question):
 
 
 # ---------------------------------------------------------------------------
+# Question status helpers (used by the navigator)
+# ---------------------------------------------------------------------------
+
+def is_answered(i):
+    """A question counts as answered if it has a non-empty choice answer or
+    a self-assessment recorded."""
+    ans = st.session_state.user_answers.get(i)
+    if ans:
+        return True
+    if i in st.session_state.self_assessed:
+        return True
+    return False
+
+
+def question_status_icon(i):
+    """Return an emoji marker for a question's current status."""
+    flagged = i in st.session_state.flagged_indexes
+    answered = is_answered(i)
+    if flagged and answered:
+        return "🚩"          # flagged (takes priority visually)
+    if flagged:
+        return "🚩"
+    if answered:
+        return "✅"
+    return "⚪"
+
+
+def goto_question(i):
+    st.session_state.current_question_index = i
+    st.rerun()
+
+
+# ---------------------------------------------------------------------------
+# Sidebar: jump-to-question navigator
+# ---------------------------------------------------------------------------
+
+def render_navigator():
+    """Render a sidebar navigator to jump to any question, with status markers."""
+    questions = st.session_state.questions
+    total = len(questions)
+    current = st.session_state.current_question_index
+
+    st.sidebar.header("🧭 Navigator")
+
+    # Live counters
+    answered = sum(1 for i in range(total) if is_answered(i))
+    flagged = len(st.session_state.flagged_indexes)
+    remaining = total - answered
+    c1, c2, c3 = st.sidebar.columns(3)
+    c1.metric("✅ Done", answered)
+    c2.metric("🚩 Flag", flagged)
+    c3.metric("⚪ Left", remaining)
+
+    # Fast "jump to #" dropdown (labels show the question number + status).
+    labels = []
+    for i, q in enumerate(questions):
+        labels.append(f"{question_status_icon(i)} Q{q.get('question_number', i + 1)}")
+    picked = st.sidebar.selectbox(
+        "Jump to question",
+        options=list(range(total)),
+        index=current,
+        format_func=lambda i: f"{labels[i]}  ({i + 1}/{total})",
+        key="nav_jump_select",
+    )
+    if picked != current:
+        goto_question(picked)
+
+    # Optional filter to declutter long sets.
+    view = st.sidebar.radio(
+        "Show", ["All", "Flagged", "Unanswered"], horizontal=True, key="nav_view"
+    )
+
+    # Compact clickable grid of question buttons.
+    st.sidebar.caption("Click a number to jump:")
+    per_row = 5
+    row = None
+    shown = 0
+    for i in range(total):
+        if view == "Flagged" and i not in st.session_state.flagged_indexes:
+            continue
+        if view == "Unanswered" and is_answered(i):
+            continue
+        if shown % per_row == 0:
+            row = st.sidebar.columns(per_row)
+        col = row[shown % per_row]
+        icon = question_status_icon(i)
+        label = f"{icon}{i + 1}"
+        # Highlight the current question.
+        btn_type = "primary" if i == current else "secondary"
+        if col.button(label, key=f"nav_btn_{i}", type=btn_type, use_container_width=True):
+            goto_question(i)
+        shown += 1
+
+    if shown == 0:
+        st.sidebar.info("No questions match this filter.")
+
+    st.sidebar.caption("✅ answered · 🚩 flagged · ⚪ not attempted")
+
+
+# ---------------------------------------------------------------------------
 # Home / upload
 # ---------------------------------------------------------------------------
 
@@ -409,6 +509,9 @@ def show_quiz_page():
     idx = st.session_state.current_question_index
     total = len(questions)
     q = questions[idx]
+
+    # Sidebar navigator (jump to any question).
+    render_navigator()
 
     st.title("📝 Practice Quiz")
 

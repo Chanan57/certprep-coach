@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import tempfile
 
@@ -30,6 +31,41 @@ TYPE_LABELS = {
     "DRAG DROP": "Drag and drop",
     "SIMULATION": "Simulation",
 }
+
+# Section headers found in case-study scenarios. Used to break the scenario
+# into readable, bolded sections instead of one long wall of text.
+SCENARIO_SECTIONS = [
+    "Windows Autopilot Configuration",
+    "Microsoft Intune Configuration",
+    "Intune Configuration",
+    "Existing Environment",
+    "Network Environment",
+    "Technical Requirements",
+    "Security Requirements",
+    "General Requirements",
+    "Business Requirements",
+    "Users and Groups",
+    "Planned Changes",
+    "Planned changes",
+    "Requirements",
+    "Environment",
+    "Overview",
+    "Devices",
+]
+
+
+def format_scenario(text):
+    """Break a case-study scenario blob into readable, bolded sections."""
+    if not text:
+        return text
+    # Longest section names first so 'Network Environment' wins over 'Environment'.
+    alts = "|".join(re.escape(s) for s in sorted(SCENARIO_SECTIONS, key=len, reverse=True))
+    pattern = re.compile(r"(?<![A-Za-z])(" + alts + r")\s*[-:]\s*")
+    formatted = pattern.sub(lambda m: f"\n\n### {m.group(1)}\n\n", text)
+    # Tidy leading separators and excess blank lines.
+    formatted = re.sub(r"^\s*[-:]\s*", "", formatted).strip()
+    formatted = re.sub(r"\n{3,}", "\n\n", formatted)
+    return formatted
 
 
 # ---------------------------------------------------------------------------
@@ -187,7 +223,6 @@ def show_home_page():
 
     tab_library, tab_upload = st.tabs(["📚 Question Library", "⬆️ Upload a PDF"])
 
-    # --- Library tab (pre-loaded exams, no upload needed) ---
     with tab_library:
         summary = lib.library_summary()
         if not summary:
@@ -203,8 +238,7 @@ def show_home_page():
             chosen = st.selectbox("Choose an exam", exam_names, key="lib_exam")
 
             detail = next(s for s in summary if s["exam"] == chosen)
-            st.caption(f"📄 {detail['pdf_count']} PDF(s): "
-                       + ", ".join(detail["pdfs"]))
+            st.caption(f"📄 {detail['pdf_count']} PDF(s): " + ", ".join(detail["pdfs"]))
 
             colA, colB = st.columns([1, 1])
             with colA:
@@ -214,12 +248,10 @@ def show_home_page():
                 if st.button("🔄 Re-parse (ignore cache)", key="lib_reparse"):
                     _load_exam_with_progress(chosen, force=True)
 
-            # Cache status
             rows, cached = lib.cache_info()
             if rows:
                 st.caption(f"🗄️ Cache: {rows} PDF(s) stored · exams: {', '.join(cached)}")
 
-    # --- Upload tab (fallback / ad-hoc) ---
     with tab_upload:
         st.caption("Upload a one-off PDF that isn't in the library.")
         uploaded_file = st.file_uploader("Upload your PDF file", type=["pdf"])
@@ -419,10 +451,11 @@ def render_choice(question, idx, multi):
 
 # ---- Interactive DRAG DROP -------------------------------------------------
 
-def render_dragdrop(question, idx):
+def render_dragdrop(question, idx, show_imgs=True):
     st.caption("↕️ **Drag and drop** — the items and answer area are in the exhibit "
                "below. Enter the items and slots once, then assign each slot.")
-    show_images(question["images"], "🖼️ Exhibit (items + answer key)")
+    if show_imgs:
+        show_images(question["images"], "🖼️ Exhibit (items + answer key)")
 
     key = qid(question)
     stem = (question.get("question_text") or "").lower()
@@ -480,10 +513,11 @@ def parse_hotspot_lines(raw):
     return groups
 
 
-def render_hotspot(question, idx):
+def render_hotspot(question, idx, show_imgs=True):
     st.caption("🔽 **Hotspot** — the dropdowns and answer key are in the exhibit "
                "below. Enter each dropdown once, then make your selections.")
-    show_images(question["images"], "🖼️ Exhibit (dropdowns + answer key)")
+    if show_imgs:
+        show_images(question["images"], "🖼️ Exhibit (dropdowns + answer key)")
 
     key = qid(question)
     stem = (question.get("question_text") or "").lower()
@@ -516,29 +550,30 @@ def render_hotspot(question, idx):
     render_self_assess(idx)
 
 
-def render_simulation(question, idx):
+def render_simulation(question, idx, show_imgs=True):
     st.caption("🧪 **Simulation task** — attempt it in a lab, then check the exhibit.")
-    show_images(question["images"], "🖼️ Task solution / exhibit")
+    if show_imgs:
+        show_images(question["images"], "🖼️ Task solution / exhibit")
     st.text_area("📝 Your working / notes (optional)", key=f"notes_{qid(question)}")
     render_self_assess(idx)
 
 
-def render_question_body(question, idx, show_choice_images=True):
+def render_question_body(question, idx, show_images_in_body=True):
     qtype = question["type"]
     if qtype == "SINGLE":
-        if show_choice_images:
+        if show_images_in_body:
             show_images(question["images"], "🖼️ Exhibit / image")
         render_choice(question, idx, multi=False)
     elif qtype == "MULTI":
-        if show_choice_images:
+        if show_images_in_body:
             show_images(question["images"], "🖼️ Exhibit / image")
         render_choice(question, idx, multi=True)
     elif qtype == "HOTSPOT":
-        render_hotspot(question, idx)
+        render_hotspot(question, idx, show_imgs=show_images_in_body)
     elif qtype == "DRAG DROP":
-        render_dragdrop(question, idx)
+        render_dragdrop(question, idx, show_imgs=show_images_in_body)
     elif qtype == "SIMULATION":
-        render_simulation(question, idx)
+        render_simulation(question, idx, show_imgs=show_images_in_body)
 
 
 # ---------------------------------------------------------------------------
@@ -591,15 +626,24 @@ def show_quiz_page():
         pos, size = q.get("case_position"), q.get("case_size")
         badge = f" — part {pos} of {size}" if pos and size else ""
         st.markdown(f"### 📁 Case Study: {label}{badge}")
-        with st.expander("📖 Case study scenario", expanded=False):
-            st.markdown(q["case_scenario"])
+
+        # Scenario text (collapsed by default — it's long reference material),
+        # now formatted into readable sections instead of one wall of text.
+        with st.expander("📖 Case study scenario (background)", expanded=False):
+            st.markdown(format_scenario(q["case_scenario"]))
+
+        # Show the tables/exhibits the scenario refers to — these are images,
+        # shown right here (expanded) so "the following table" makes sense.
+        show_images(q["images"], "🖼️ Case study tables & exhibits", expanded=True)
+
         st.markdown("### ❓ Question")
-        st.write(q["question_text"] or "_(See exhibit image.)_")
-        render_question_body(q, idx, show_choice_images=True)
+        st.write(q["question_text"] or "_(See exhibit above.)_")
+        # Images already shown above — don't duplicate them in the body.
+        render_question_body(q, idx, show_images_in_body=False)
     else:
         st.markdown("### Question")
         st.write(q["question_text"] or "_(See exhibit image below.)_")
-        render_question_body(q, idx, show_choice_images=True)
+        render_question_body(q, idx, show_images_in_body=True)
 
     st.markdown("---")
     flagged = idx in st.session_state.flagged_indexes

@@ -1,77 +1,145 @@
-# CertPrep Coach — Version 3 (fixed)
+# 📘 CertPrep Coach
 
-A Python + Streamlit exam-preparation tool. Upload a practice-question PDF and
-it becomes an interactive, configurable quiz — with images, multiple question
-types, and grouped case studies.
+**An exam simulator for Microsoft certification practice.** Upload exam-question
+PDFs and CertPrep Coach turns them into an interactive, Microsoft-style practice
+experience — complete with case-study navigation, timed sessions, scoring, and a
+study-focused reading mode.
 
-## What this version fixes
+Built with **Python + Streamlit**. Internal team tool for certification prep.
 
-- 🧹 **Footer/noise removal** — strips repeated ExamTopics page footers
-  (`1/23/26, 10:14 AM ... ExamTopics ... 9/230`) that were being glued onto the
-  last answer option.
-- 🖼️ **Images now show** — the image filter was too aggressive and dropped
-  case-study exhibits; it now keeps exhibits and only skips true site logos.
-- 🔽 **No more fake "Option 1/2/3"** — hotspot and drag-drop answer areas live
-  inside the exhibit images, so the app shows the image + a self-assessment
-  instead of fabricating meaningless dropdowns.
-- 📁 **Case-study grouping** — questions that share a scenario (e.g. ADatum,
-  Contoso) are grouped; the shared scenario + exhibits are shown once, with the
-  specific question below.
+---
 
-## Question types
+## ✨ Features
 
-| Type | Interaction | Graded? |
-|------|-------------|---------|
-| Single choice | Radio buttons | ✅ Auto (if the PDF includes the key) |
-| Multiple choice | Checkboxes | ✅ Auto (set match) |
-| Hotspot / dropdown | Exhibit image + self-assessment | 🔎 Self-assess |
-| Drag and drop | Exhibit image + self-assessment | 🔎 Self-assess |
-| Simulation | Task text + exhibit + self-assessment | 🔎 Self-assess |
+### Study modes
+- **Practice mode** — answer questions, check answers, get a scored report
+- **Reading mode** — reveal the correct answer, highlight the right options, and
+  read the captured community discussion & voted answers for each question
 
-If a PDF has no answer key (common in free dumps), choice questions become
-self-assessed too, with a clear note.
+### Exam experience
+- **Microsoft-style UI** — Segoe UI font, Fluent colour palette, progress header
+  (Standalone / Case Study / Lab), and an `HH:MM:SS` countdown timer
+- **Question types** — single choice, multiple choice, hotspot/dropdown,
+  drag-and-drop, and lab/simulation
+- **Case studies** — grouped left-nav (Overview, Environment ▸ Existing/Network,
+  Requirements ▸ Technical, etc.) with the question and exhibits on the right
+- **Clean formatting** — run-on stems are split into readable sentences and
+  bulleted lists, with the actual question bolded
 
-## Features
+### Exam modes & flow
+- **Full exam** (all questions) or **~60-question sets** — each set guaranteed to
+  include at least one case study and two Yes/No questions
+- **Jump-to-question navigator** with a collapsible grid and status markers
+  (✅ answered · 🚩 review later · ⚪ not attempted)
+- **Save & resume** progress, or start fresh
+- **End exam** anytime, or **Finish** at the last question
+- **Score report** using Microsoft-style 100–1000 scaling (700 pass line), with
+  per-skill-area and per-section breakdowns and CSV export
 
-- Session setup: topic + type filters, shuffle, timed mode
-- Case-study scenario grouping with exhibits
-- Flag-as-difficult, smart retake (incorrect + flagged)
-- Score summary (auto-graded vs self-assessed) + CSV export
+### Library
+- **Question library** — pre-loaded exams parsed once and cached in SQLite for
+  instant loading thereafter
+- **Add new exam** from the home page — create a folder and upload PDFs directly
+- **Quick upload** for one-off PDFs
 
-## Project structure
+---
+
+## 🗂️ Project structure
 
 ```text
 certprep-coach/
-|-- app.py
-|-- requirements.txt
-|-- README.md
-|-- src/
-    |-- __init__.py
-    |-- pdf_reader.py        # text + image extraction (noise-tolerant)
-    |-- question_parser.py   # footer stripping, type detection, case studies
-    |-- quiz_engine.py       # scoring, shuffle, filter, review, timer
-    |-- topic_tagger.py      # optional keyword topic tagging
+├── app.py                  # thin router / entry point
+├── requirements.txt
+├── commit.py               # helper: git add + commit + push
+│
+├── src/                    # data + logic layer
+│   ├── pdf_reader.py       # text + image extraction
+│   ├── question_parser.py  # question types, case studies, community capture
+│   ├── quiz_engine.py      # scoring, shuffle, filter, review, timer
+│   ├── library.py          # SQLite-cached exam library + add-exam
+│   ├── exam_builder.py     # full-exam and 60-question set building
+│   ├── progress.py         # save/load session progress (JSON)
+│   └── topic_tagger.py     # optional keyword topic tagging
+│
+├── ui/                     # presentation layer
+│   ├── state.py            # session state, formatting, grouped-nav logic
+│   ├── styles.py           # Fluent / Segoe CSS
+│   ├── header.py           # progress header + timer
+│   ├── navigator.py        # sidebar navigator (collapse, home, save)
+│   ├── questions.py        # practice + reading renderers, controls, footer
+│   ├── pages.py            # home, mode chooser, quiz, report pages
+│   └── report.py           # Microsoft-style score report
+│
+├── Sample Inputs/          # exam library (git-ignored) — one folder per exam
+│   ├── MD 102/  *.pdf
+│   └── SC 401/  *.pdf
+│
+├── .cache/                 # SQLite parse cache + images (git-ignored)
+└── .progress/              # saved session files (git-ignored)
 ```
 
-## Run
+---
 
+## 🚀 Getting started
+
+### 1. Install dependencies
 ```bash
 pip install -r requirements.txt
+```
+
+### 2. Add your exams
+Create a `Sample Inputs` folder in the project root, with one subfolder per exam
+and the exam PDF(s) inside — or use **➕ Add New Exam** in the app:
+
+```text
+Sample Inputs/
+├── MD 102/
+│   └── md-102.pdf
+└── SC 401/
+    └── sc-401.pdf
+```
+
+### 3. Run the app
+```bash
 streamlit run app.py
 ```
 
-Open the local URL shown (usually http://localhost:8501), upload a PDF, choose
-your session options, and practice.
+Open the local URL shown (usually http://localhost:8501).
 
-## Tested against
+### 4. Practise
+1. **📚 Question Library** → pick an exam → **Load this exam**
+2. Choose **Practice** or **Reading** mode, and **Full exam** or **60-question set**
+3. Start, resume, or take the exam — then review your score report
 
-- **MD-102** dump (110 questions): footers stripped, ADatum & Contoso case
-  studies grouped, exhibits shown, no answer key → self-assessed.
-- **SC-401** dump (254 questions): single/multi/hotspot/drag-drop/simulation all
-  detected, answer keys auto-graded where present, images shown.
+> 💡 **Reading mode tip:** if an exam was loaded before community capture was
+> added, click **🔄 Re-parse (ignore cache)** once so discussions are available.
 
-## Notes
+---
 
-- Extracted images are written to a temporary folder per session.
-- Hotspot/drag-drop answers are inside the exhibit images by design of these
-  PDFs, so those question types use self-assessment.
+## 🧰 Developer notes
+
+- **Commit helper:** run `python commit.py "your message"` to stage, commit, and
+  push in one step.
+- **Git housekeeping:** this repo sets `gc.auto 0` to avoid an antivirus/OneDrive
+  file-lock issue during automatic garbage collection. Don't run `git gc` manually.
+- **Caching:** parsed questions and extracted images are cached under `.cache/`;
+  delete it (or use **Re-parse**) to rebuild.
+
+---
+
+## ⚠️ Responsible use
+
+This is an **internal, non-commercial** study tool. Use only exam material your
+team is authorised to use. Certification-exam content is the intellectual
+property of the certifying vendor — keep usage within your organisation's
+policies.
+
+---
+
+## 🛣️ Roadmap ideas
+
+- **AI layer** (Azure OpenAI vision) to auto-read hotspot/drag-drop answers from
+  exhibit images and clean up community text
+- Nested parent/child scenario sections with deeper grouping
+- Keyboard shortcuts for faster navigation
+- Team leaderboard and shared progress

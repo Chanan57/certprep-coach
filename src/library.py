@@ -4,24 +4,16 @@ Library / database layer for CertPrep Coach.
 Turns a folder of exam PDFs into an instantly-loadable question bank so users
 never have to upload files repeatedly.
 
-Expected layout (relative to the project root, configurable):
-
     Sample Inputs/
-        MD 102/
-            md-102-part1.pdf
-            md-102-part2.pdf
-        SC 401/
-            sc-401.pdf
+        MD 102/  *.pdf
+        SC 401/  *.pdf
 
-Each SUBFOLDER of "Sample Inputs" is treated as one exam. All PDFs inside it
-are parsed and combined into that exam's question bank.
-
-Parsing is cached in a small SQLite database (.cache/library.db) keyed by each
-PDF's content hash, so a PDF is only ever parsed once. Extracted images are
-written to a persistent folder (.cache/images/<hash>/) that survives restarts.
+Each subfolder = one exam. Parsing is cached in SQLite (.cache/library.db)
+keyed by each PDF's content hash; extracted images persist in .cache/images/.
 """
 
 import os
+import re
 import json
 import hashlib
 import sqlite3
@@ -29,10 +21,6 @@ import sqlite3
 from src.pdf_reader import extract_pdf_content
 from src.question_parser import parse_questions
 
-
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_LIBRARY_DIR = os.path.join(PROJECT_ROOT, "Sample Inputs")
@@ -51,12 +39,12 @@ def _connect():
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS pdf_cache (
-            file_hash     TEXT PRIMARY KEY,
-            exam          TEXT NOT NULL,
-            filename      TEXT NOT NULL,
+            file_hash      TEXT PRIMARY KEY,
+            exam           TEXT NOT NULL,
+            filename       TEXT NOT NULL,
             questions_json TEXT NOT NULL,
-            image_dir     TEXT NOT NULL,
-            parsed_at     TEXT NOT NULL
+            image_dir      TEXT NOT NULL,
+            parsed_at      TEXT NOT NULL
         )
         """
     )
@@ -77,7 +65,6 @@ def _file_hash(path):
 # ---------------------------------------------------------------------------
 
 def list_exams(library_dir=DEFAULT_LIBRARY_DIR):
-    """Return a sorted list of exam names (subfolders that contain >=1 PDF)."""
     if not os.path.isdir(library_dir):
         return []
     exams = []
@@ -89,24 +76,65 @@ def list_exams(library_dir=DEFAULT_LIBRARY_DIR):
 
 
 def _pdfs_in(folder):
-    return [
-        os.path.join(folder, f)
-        for f in sorted(os.listdir(folder))
-        if f.lower().endswith(".pdf")
-    ]
+    return [os.path.join(folder, f) for f in sorted(os.listdir(folder))
+            if f.lower().endswith(".pdf")]
 
 
 def library_summary(library_dir=DEFAULT_LIBRARY_DIR):
-    """Return [{'exam','pdf_count','pdfs':[names]}] for display."""
     out = []
     for exam in list_exams(library_dir):
         pdfs = _pdfs_in(os.path.join(library_dir, exam))
-        out.append({
-            "exam": exam,
-            "pdf_count": len(pdfs),
-            "pdfs": [os.path.basename(p) for p in pdfs],
-        })
+        out.append({"exam": exam, "pdf_count": len(pdfs),
+                    "pdfs": [os.path.basename(p) for p in pdfs]})
     return out
+
+
+# ---------------------------------------------------------------------------
+# Add a new exam (create folder + save uploaded PDFs)
+# ---------------------------------------------------------------------------
+
+def _safe_exam_name(name):
+    name = (name or "").strip()
+    # Allow letters, numbers, spaces, dashes; collapse the rest.
+    name = re.sub(r"[^A-Za-z0-9 \-_]+", "", name).strip()
+    return name
+
+
+def add_exam(exam_name, uploaded_files, library_dir=DEFAULT_LIBRARY_DIR):
+    """
+    Create (or reuse) an exam folder and save uploaded PDFs into it.
+
+    exam_name: str
+    uploaded_files: list of Streamlit UploadedFile objects (have .name + .read()/getbuffer())
+
+    Returns (folder_path, saved_filenames). Raises ValueError on bad input.
+    """
+    clean = _safe_exam_name(exam_name)
+    if not clean:
+        raise ValueError("Please enter a valid exam name.")
+    if not uploaded_files:
+        raise ValueError("Please attach at least one PDF.")
+
+    folder = os.path.join(library_dir, clean)
+    os.makedirs(folder, exist_ok=True)
+
+    saved = []
+    for uf in uploaded_files:
+        fname = os.path.basename(uf.name)
+        if not fname.lower().endswith(".pdf"):
+            continue
+        dest = os.path.join(folder, fname)
+        with open(dest, "wb") as f:
+            # Streamlit UploadedFile supports getbuffer(); fall back to read().
+            try:
+                f.write(uf.getbuffer())
+            except Exception:
+                f.write(uf.read())
+        saved.append(fname)
+
+    if not saved:
+        raise ValueError("No PDF files were saved.")
+    return folder, saved
 
 
 # ---------------------------------------------------------------------------
@@ -114,31 +142,25 @@ def library_summary(library_dir=DEFAULT_LIBRARY_DIR):
 # ---------------------------------------------------------------------------
 
 def _parse_pdf_cached(path, exam, conn, force=False):
-    """Parse one PDF, using the SQLite cache unless force=True."""
     file_hash = _file_hash(path)
     filename = os.path.basename(path)
 
     if not force:
         row = conn.execute(
             "SELECT questions_json, image_dir FROM pdf_cache WHERE file_hash = ?",
-            (file_hash,),
-        ).fetchone()
+            (file_hash,)).fetchone()
         if row:
             questions_json, image_dir = row
-            # Only trust the cache if the extracted images still exist.
             if os.path.isdir(image_dir):
                 try:
                     return json.loads(questions_json)
                 except Exception:
-                    pass  # fall through and re-parse
+                    pass
 
-    # Cache miss (or forced) -> parse fresh.
     image_dir = os.path.join(IMAGE_ROOT, file_hash)
     os.makedirs(image_dir, exist_ok=True)
-
     with open(path, "rb") as f:
         file_bytes = f.read()
-
     full_text, page_images = extract_pdf_content(file_bytes, image_dir)
     questions = parse_questions(full_text, page_images)
 
@@ -147,37 +169,27 @@ def _parse_pdf_cached(path, exam, conn, force=False):
         "REPLACE INTO pdf_cache (file_hash, exam, filename, questions_json, image_dir, parsed_at) "
         "VALUES (?, ?, ?, ?, ?, ?)",
         (file_hash, exam, filename, json.dumps(questions), image_dir,
-         datetime.now().isoformat(timespec="seconds")),
-    )
+         datetime.now().isoformat(timespec="seconds")))
     conn.commit()
     return questions
 
 
 def load_exam(exam, library_dir=DEFAULT_LIBRARY_DIR, force=False, progress=None):
-    """
-    Load and combine all questions for one exam (folder). Returns a flat list
-    of question dicts. `progress` is an optional callback(done, total, filename).
-    """
     folder = os.path.join(library_dir, exam)
     pdfs = _pdfs_in(folder)
     if not pdfs:
         return []
-
     conn = _connect()
     all_questions = []
     try:
         for i, path in enumerate(pdfs):
             if progress:
                 progress(i, len(pdfs), os.path.basename(path))
-            qs = _parse_pdf_cached(path, exam, conn, force=force)
-            all_questions.extend(qs)
+            all_questions.extend(_parse_pdf_cached(path, exam, conn, force=force))
         if progress:
             progress(len(pdfs), len(pdfs), "done")
     finally:
         conn.close()
-
-    # Re-assign case grouping across the combined set so shared scenarios in
-    # different PDFs still group correctly.
     _regroup_cases(all_questions)
     return all_questions
 
@@ -199,13 +211,11 @@ def _regroup_cases(questions):
 # ---------------------------------------------------------------------------
 
 def clear_cache():
-    """Delete the SQLite cache (images are left on disk)."""
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
 
 
 def cache_info():
-    """Return (rows, exams_cached) for display, or (0, []) if no DB yet."""
     if not os.path.exists(DB_PATH):
         return 0, []
     conn = _connect()

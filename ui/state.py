@@ -1,7 +1,6 @@
 """Shared state, constants, and helper functions for the CertPrep Coach UI."""
 
 import re
-import time
 
 import streamlit as st
 
@@ -18,6 +17,8 @@ SCENARIO_SECTIONS = [
     "Windows Autopilot Configuration",
     "Microsoft Intune Configuration",
     "Intune Configuration",
+    "Active Directory Environment",
+    "System Center 2012 Infrastructure",
     "Existing Environment",
     "Network Environment",
     "Technical Requirements",
@@ -25,6 +26,7 @@ SCENARIO_SECTIONS = [
     "General Requirements",
     "Business Requirements",
     "Business Goals",
+    "App1 Requirements",
     "Users and Groups",
     "Planned Changes",
     "Planned changes",
@@ -33,6 +35,7 @@ SCENARIO_SECTIONS = [
     "Environment",
     "Overview",
     "Devices",
+    "App1",
 ]
 
 
@@ -42,21 +45,27 @@ SCENARIO_SECTIONS = [
 
 def initialise_session_state():
     defaults = {
-        "all_questions": [],
-        "questions": [],
+        "all_questions": [],          # full parsed bank for the chosen exam
+        "questions": [],              # the active set being practised
         "current_question_index": 0,
         "user_answers": {},
         "self_assessed": {},
         "flagged_indexes": set(),      # "Review later"
         "feedback_indexes": set(),     # "Leave Feedback"
         "quiz_started": False,
-        "quiz_completed": False,
+        "quiz_completed": False,       # reached results/report
         "show_setup": False,
+        "show_mode": False,            # exam-mode chooser page
         "timed_mode": False,
         "time_limit_minutes": 30,
         "start_time": None,
         "image_dir": None,
         "source_label": "",
+        "exam_name": "",               # library exam name (for progress files)
+        "exam_mode": "full",           # "full" or "set:N"
+        "exam_sets": [],               # list[list[question]] when in sets mode
+        "cs_view": "__question__",     # active case-study section
+        "nav_collapsed": False,        # sidebar navigator collapse toggle
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -72,16 +81,26 @@ def reset_quiz_progress():
     st.session_state.quiz_started = False
     st.session_state.quiz_completed = False
     st.session_state.start_time = None
-    # Safe here: the navigator widget is not on the current page during resets.
+    st.session_state.cs_view = "__question__"
     st.session_state.pop("nav_jump_select", None)
 
 
 def full_reset():
+    """Return all the way to the home page, keeping nothing loaded."""
     reset_quiz_progress()
     st.session_state.all_questions = []
     st.session_state.questions = []
     st.session_state.show_setup = False
+    st.session_state.show_mode = False
     st.session_state.source_label = ""
+    st.session_state.exam_name = ""
+    st.session_state.exam_sets = []
+
+
+def go_home():
+    """Feature #2: jump back to the home page from anywhere."""
+    full_reset()
+    st.rerun()
 
 
 def qid(question):
@@ -89,11 +108,13 @@ def qid(question):
             f"__{question.get('type','?')}")
 
 
-def load_questions_into_state(questions, source_label):
+def load_questions_into_state(questions, source_label, exam_name=""):
     st.session_state.all_questions = questions
     st.session_state.source_label = source_label
+    st.session_state.exam_name = exam_name or source_label
     reset_quiz_progress()
-    st.session_state.show_setup = True
+    st.session_state.show_mode = True     # go to exam-mode chooser next
+    st.session_state.show_setup = False
 
 
 # ---------------------------------------------------------------------------
@@ -101,17 +122,10 @@ def load_questions_into_state(questions, source_label):
 # ---------------------------------------------------------------------------
 
 def goto_question(i):
-    """
-    Move to question index i and rerun.
-
-    IMPORTANT: we do NOT write to st.session_state['nav_jump_select'] here.
-    That widget key is synced at the top of render_navigator() *before* the
-    selectbox is instantiated. Writing it after instantiation raises
-    StreamlitAPIException (the bug this refactor fixes).
-    """
     total = len(st.session_state.questions)
     i = max(0, min(i, total - 1)) if total else 0
     st.session_state.current_question_index = i
+    st.session_state.cs_view = "__question__"
     st.rerun()
 
 
@@ -172,22 +186,24 @@ def compute_sections():
 
 
 # ---------------------------------------------------------------------------
-# Scenario formatting
+# Text formatting
 # ---------------------------------------------------------------------------
 
-def format_scenario(text):
+def format_question_text(text):
     if not text:
-        return text
-    alts = "|".join(re.escape(s) for s in sorted(SCENARIO_SECTIONS, key=len, reverse=True))
-    pattern = re.compile(r"(?<![A-Za-z])(" + alts + r")\s*[-:]\s*")
-    formatted = pattern.sub(lambda m: f"\n\n### {m.group(1)}\n\n", text)
-    formatted = re.sub(r"^\s*[-:]\s*", "", formatted).strip()
-    formatted = re.sub(r"\n{3,}", "\n\n", formatted)
-    return formatted
+        return "_(See exhibit.)_"
+    text = re.sub(r"\s+", " ", text).strip()
+    sentences = re.split(r"(?<=[.?!])\s+", text)
+    out = []
+    for s in sentences:
+        s = s.strip()
+        if not s:
+            continue
+        out.append(f"**{s}**" if s.endswith("?") else s)
+    return "\n\n".join(out)
 
 
 def split_scenario_sections(text):
-    """Return an ordered list of (section_title, body) for the left panel."""
     if not text:
         return []
     alts = "|".join(re.escape(s) for s in sorted(SCENARIO_SECTIONS, key=len, reverse=True))
@@ -208,9 +224,52 @@ def split_scenario_sections(text):
     return parts
 
 
+def format_body(text):
+    if not text:
+        return text
+    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"\s*•\s*", "\n- ", text)
+    text = re.sub(r"(?<=[.?!])\s+(?=[A-Z])", "\n\n", text)
+    return text.strip()
+
+
 def hhmmss(total_seconds):
     total_seconds = max(int(total_seconds), 0)
     h = total_seconds // 3600
     m = (total_seconds % 3600) // 60
     s = total_seconds % 60
     return f"{h:02d} : {m:02d} : {s:02d}"
+
+
+# ---------------------------------------------------------------------------
+# Progress payload helpers (feature #3 & #6)
+# ---------------------------------------------------------------------------
+
+def build_progress_payload():
+    import time
+    elapsed = (time.time() - st.session_state.start_time) if st.session_state.start_time else 0
+    return {
+        "question_numbers": [q.get("question_number") for q in st.session_state.questions],
+        "current_index": st.session_state.current_question_index,
+        "user_answers": st.session_state.user_answers,
+        "self_assessed": st.session_state.self_assessed,
+        "flagged": st.session_state.flagged_indexes,
+        "feedback": st.session_state.feedback_indexes,
+        "elapsed_seconds": elapsed,
+        "timed_mode": st.session_state.timed_mode,
+        "time_limit_minutes": st.session_state.time_limit_minutes,
+    }
+
+
+def apply_progress_payload(data):
+    import time
+    st.session_state.user_answers = data.get("user_answers", {})
+    st.session_state.self_assessed = data.get("self_assessed", {})
+    st.session_state.flagged_indexes = data.get("flagged", set())
+    st.session_state.feedback_indexes = data.get("feedback", set())
+    st.session_state.current_question_index = data.get("current_index", 0)
+    st.session_state.timed_mode = data.get("timed_mode", False)
+    st.session_state.time_limit_minutes = data.get("time_limit_minutes", 30)
+    # Resume the clock accounting for already-elapsed time.
+    elapsed = data.get("elapsed_seconds", 0)
+    st.session_state.start_time = time.time() - elapsed

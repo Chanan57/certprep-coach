@@ -4,10 +4,7 @@ import os
 
 import streamlit as st
 
-from ui.state import (
-    TYPE_LABELS, qid, reset_answer, goto_question,
-    is_answered, question_status_icon,
-)
+from ui.state import qid, reset_answer, goto_question, format_question_text
 
 
 def show_images(images, caption="🖼️ Exhibit / image", expanded=True):
@@ -17,6 +14,13 @@ def show_images(images, caption="🖼️ Exhibit / image", expanded=True):
     with st.expander(f"{caption} ({len(imgs)})", expanded=expanded):
         for p in imgs:
             st.image(p, use_container_width=True)
+
+
+def render_stem(question):
+    st.markdown(
+        f"<div class='q-text'>{format_question_text(question.get('question_text',''))}</div>",
+        unsafe_allow_html=True)
+    st.markdown("")
 
 
 def render_self_assess(idx):
@@ -77,8 +81,7 @@ def render_choice(question, idx, multi):
 
 
 def render_dragdrop(question, idx, show_imgs=True):
-    st.markdown("This question type is **Drag and Drop / Build List**. Assign a "
-                "source item to each target in the answer area.")
+    st.caption("**Drag and Drop / Build List** — assign a source item to each target.")
     if show_imgs:
         show_images(question["images"], "🖼️ Exhibit (items + answer key)")
     key = qid(question)
@@ -128,8 +131,7 @@ def parse_hotspot_lines(raw):
 
 
 def render_hotspot(question, idx, show_imgs=True):
-    st.markdown("This question type is **Hotspot / Active Screen**. Make a selection "
-                "for each dropdown in the answer area.")
+    st.caption("**Hotspot / Active Screen** — make a selection for each dropdown.")
     if show_imgs:
         show_images(question["images"], "🖼️ Exhibit (dropdowns + answer key)")
     key = qid(question)
@@ -159,8 +161,7 @@ def render_hotspot(question, idx, show_imgs=True):
 
 
 def render_simulation(question, idx, show_imgs=True):
-    st.markdown("This is a **Lab / Simulation** task. Attempt it in a lab, then check "
-                "the exhibit.")
+    st.caption("**Lab / Simulation** task — attempt it in a lab, then check the exhibit.")
     if show_imgs:
         show_images(question["images"], "🖼️ Task solution / exhibit")
     st.text_area("📝 Your working / notes (optional)", key=f"notes_{qid(question)}")
@@ -170,7 +171,6 @@ def render_simulation(question, idx, show_imgs=True):
 def render_question_body(question, idx, show_images_in_body=True):
     qtype = question["type"]
     if qtype == "SINGLE":
-        st.markdown("This question type is **multiple choice, select one**.")
         if show_images_in_body:
             show_images(question["images"], "🖼️ Exhibit / image")
         render_choice(question, idx, multi=False)
@@ -209,12 +209,21 @@ def render_question_controls(question, idx):
 
 
 def render_footer_nav(idx, total):
+    """Previous / Next / Finish plus End Exam (feature #7)."""
     st.markdown("---")
-    left, _mid, right = st.columns([1.2, 6, 1.2])
+    left, mid, right = st.columns([1.3, 5.4, 1.3])
     with left:
         if st.button("‹  Previous", key=f"prev_{idx}", disabled=idx == 0,
                      type="primary", use_container_width=True):
             goto_question(idx - 1)
+    with mid:
+        # End Exam: confirm, then go straight to the score report.
+        with st.popover("⏹ End Exam", use_container_width=True):
+            st.write("End the exam now and see your score report?")
+            st.caption("Unanswered questions will be marked incorrect.")
+            if st.button("Yes, end exam & score", type="primary", key=f"endexam_{idx}"):
+                st.session_state.quiz_completed = True
+                st.rerun()
     with right:
         if idx < total - 1:
             if st.button("Next  ›", key=f"next_{idx}", type="primary",

@@ -40,7 +40,6 @@ SCENARIO_SECTIONS = [
     "App1",
 ]
 
-# Suffixes used to nest sections under a parent group in the case-study nav.
 GROUP_SUFFIXES = ["Environment", "Requirements", "Configuration", "Infrastructure"]
 
 
@@ -69,7 +68,7 @@ def initialise_session_state():
         "exam_name": "",
         "exam_mode": "full",
         "exam_sets": [],
-        "app_mode": "practice",         # "practice" or "reading"
+        "app_mode": "practice",
         "cs_view": "__question__",
         "nav_collapsed": False,
     }
@@ -193,13 +192,42 @@ def compute_sections():
 # Text formatting
 # ---------------------------------------------------------------------------
 
+def _linebreak_settings(text):
+    """
+    Insert line breaks in ExamTopics-style key/value content:
+      - '•' bullets
+      - ' - ' / en/em dash separators used as line breaks
+      - before short 'Label:' key phrases (e.g. 'Name:', 'Included groups:')
+    """
+    text = re.sub(r"\s*\u2022\s*", "\n\u2022 ", text)                  # • bullets
+    text = re.sub(r"\s+[\u2013\u2014]\s+", "\n", text)                  # en/em dash sep
+    text = re.sub(r"\s+-\s+", "\n", text)                               # ' - ' sep
+    text = re.sub(r"(?<!\n)\s+(?=[A-Z][A-Za-z0-9 /]{0,26}:\s)", "\n", text)  # before Label:
+    return text
+
+
 def format_question_text(text):
+    """Clean a run-on question stem into readable Markdown."""
     if not text:
         return "_(See exhibit.)_"
     text = re.sub(r"\s+", " ", text).strip()
     text = re.sub(r"^[\-\u2022:]\s*", "", text).strip()
-    text = re.sub(r"\s*[\u2022]\s*", "\n\u2022 ", text)
-    text = re.sub(r"\s+-\s+(?=[A-Z0-9])", "\n\u2022 ", text)
+
+    # Pull a trailing question sentence out first so it is always bolded on its
+    # own line, even when the source glued it onto a bullet with no separator.
+    # Anchor to the LAST interrogative word so we don't swallow the whole stem.
+    trailing_q = ""
+    if text.rstrip().endswith("?"):
+        qword = list(re.finditer(
+            r"\b(?:Which|What|How|Where|When|Who|Name|To which)\b", text))
+        if qword:
+            start = qword[-1].start()
+            candidate = text[start:].strip()
+            if len(candidate) <= 160:
+                trailing_q = candidate
+                text = text[:start].strip()
+
+    text = _linebreak_settings(text)
 
     lines = []
     for chunk in text.split("\n"):
@@ -208,6 +236,8 @@ def format_question_text(text):
             continue
         if chunk.startswith("\u2022 "):
             lines.append("- " + chunk[2:].strip())
+        elif re.match(r"^[A-Z][A-Za-z0-9 /]{0,26}:\s", chunk):
+            lines.append("- " + chunk)
         else:
             for s in re.split(r"(?<=[.?!])\s+", chunk):
                 s = s.strip()
@@ -223,7 +253,36 @@ def format_question_text(text):
             out.append("")
         out.append(ln)
         prev_bullet = is_bullet
+
+    if trailing_q:
+        if out:
+            out.append("")
+        out.append(f"**{trailing_q}**")
     return "\n".join(out)
+
+
+def format_body(text):
+    """Format a case-study scenario section body into readable lines."""
+    if not text:
+        return text
+    text = re.sub(r"\s+", " ", text).strip()
+    text = _linebreak_settings(text)
+    text = re.sub(r"(?<=[.?!])\s+(?=[A-Z])", "\n\n", text)   # sentence breaks
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    # Turn key/value lines into bullets for scanability.
+    out = []
+    for ln in text.split("\n"):
+        ln = ln.strip()
+        if not ln:
+            out.append("")
+            continue
+        if ln.startswith("\u2022 "):
+            out.append("- " + ln[2:].strip())
+        elif re.match(r"^[A-Z][A-Za-z0-9 /]{0,26}:\s", ln):
+            out.append("- " + ln)
+        else:
+            out.append(ln)
+    return "\n".join(out).strip()
 
 
 def split_scenario_sections(text):
@@ -248,34 +307,18 @@ def split_scenario_sections(text):
 
 
 def group_sections(sections):
-    """
-    Turn a flat [(title, body)] list into a grouped nav structure.
-
-    Returns (nav, content) where:
-      nav = ordered list of items:
-          {"type": "single", "key": str, "label": str}
-        | {"type": "group",  "name": str, "children": [{"key","label"}]}
-      content = {key: (display_title, body)}
-
-    Grouping rules:
-      - Titles ending in a GROUP_SUFFIX (e.g. "Existing Environment",
-        "Technical Requirements") nest under that suffix as the parent group.
-      - A bare parent title (e.g. "Environment") becomes a child labelled
-        "General" within its group.
-      - Duplicate labels within a group are merged (bodies concatenated) so we
-        don't get two identical "Environment" entries.
-    """
+    """Turn a flat [(title, body)] list into a grouped nav structure."""
     def parent_of(title):
         for suf in GROUP_SUFFIXES:
             if title == suf:
-                return suf          # bare parent
+                return suf
             if title.endswith(" " + suf) or title.endswith(suf):
                 return suf
         return None
 
     nav = []
     content = {}
-    group_lookup = {}     # suffix -> nav group dict
+    group_lookup = {}
     key_counter = 0
 
     def new_key():
@@ -283,10 +326,8 @@ def group_sections(sections):
         key_counter += 1
         return f"sec_{key_counter}"
 
-    # First pass: collect merged bodies per (group, label).
-    merged = {}   # (group, label) -> [bodies], preserve order
-    order = []    # list of ("single", title) or ("group", suffix, label)
-
+    merged = {}
+    order = []
     for title, body in sections:
         suf = parent_of(title)
         if suf:
@@ -322,28 +363,16 @@ def group_sections(sections):
             display = label if label != "General" else f"{suf} (general)"
             group_lookup[suf]["children"].append({"key": key, "label": display})
 
-    # Flatten single-child groups back into a single item (cleaner nav).
     cleaned = []
     for item in nav:
         if item.get("type") == "group" and len(item["children"]) == 1:
             child = item["children"][0]
-            cleaned.append({"type": "single", "key": child["key"],
-                            "label": item["name"]})
-            # relabel content to the group name for clarity
+            cleaned.append({"type": "single", "key": child["key"], "label": item["name"]})
             title, body = content[child["key"]]
             content[child["key"]] = (item["name"], body)
         else:
             cleaned.append(item)
     return cleaned, content
-
-
-def format_body(text):
-    if not text:
-        return text
-    text = re.sub(r"\s+", " ", text).strip()
-    text = re.sub(r"\s*\u2022\s*", "\n- ", text)
-    text = re.sub(r"(?<=[.?!])\s+(?=[A-Z])", "\n\n", text)
-    return text.strip()
 
 
 def hhmmss(total_seconds):

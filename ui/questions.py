@@ -1,4 +1,4 @@
-"""Question rendering: choice, drag-drop, hotspot, simulation, and controls."""
+"""Question rendering: practice widgets, reading view, and controls."""
 
 import os
 
@@ -17,9 +17,7 @@ def show_images(images, caption="🖼️ Exhibit / image", expanded=True):
 
 
 def render_stem(question):
-    st.markdown(
-        f"<div class='q-text'>{format_question_text(question.get('question_text',''))}</div>",
-        unsafe_allow_html=True)
+    st.markdown(format_question_text(question.get("question_text", "")))
     st.markdown("")
 
 
@@ -40,6 +38,10 @@ def render_self_assess(idx):
     if current:
         st.info(f"Marked as: **{current}**")
 
+
+# ---------------------------------------------------------------------------
+# Practice-mode renderers
+# ---------------------------------------------------------------------------
 
 def render_choice(question, idx, multi):
     options = question["options"]
@@ -186,6 +188,53 @@ def render_question_body(question, idx, show_images_in_body=True):
         render_simulation(question, idx, show_imgs=show_images_in_body)
 
 
+# ---------------------------------------------------------------------------
+# Reading-mode renderer (correct answer + community discussion)
+# ---------------------------------------------------------------------------
+
+def render_reading_body(question, idx, show_images_in_body=True):
+    """Study view: reveal answer, highlight correct options, show community."""
+    if show_images_in_body:
+        show_images(question["images"], "🖼️ Exhibit / image")
+
+    options = question.get("options", {})
+    correct = question.get("correct_answer", "")
+    suggested = question.get("suggested_answer", "")
+
+    if options:
+        st.markdown("**Options:**")
+        for k, v in options.items():
+            mark = " ✅" if k in correct else ""
+            style = "**" if k in correct else ""
+            st.markdown(f"{style}{k}. {v}{style}{mark}")
+
+    # Answer banner
+    ans = correct or suggested
+    if ans:
+        src = "PDF key" if correct else "community vote"
+        st.success(f"**Correct answer: {ans}**  ·  _({src})_")
+    else:
+        st.info("No explicit answer key in this PDF — see the community discussion below.")
+
+    if question.get("type") in ("HOTSPOT", "DRAG DROP", "SIMULATION"):
+        st.caption("🔎 This is a hotspot/drag-drop/lab question — the answer is in "
+                   "the exhibit image above.")
+
+    # Community discussion
+    community = question.get("community", "")
+    if community:
+        with st.expander("💬 Community discussion & answers", expanded=True):
+            st.markdown(community)
+    else:
+        st.caption("💬 No community discussion was captured for this question. "
+                   "(Re-parse the exam with **🔄 Re-parse** on the home page to "
+                   "capture discussions from the PDF.)")
+
+
+# ---------------------------------------------------------------------------
+# Per-question controls + footer nav
+# ---------------------------------------------------------------------------
+
 def render_question_controls(question, idx):
     st.markdown("")
     r1, r2, r3 = st.columns([1.4, 1.4, 6])
@@ -209,7 +258,6 @@ def render_question_controls(question, idx):
 
 
 def render_footer_nav(idx, total):
-    """Previous / Next / Finish plus End Exam (feature #7)."""
     st.markdown("---")
     left, mid, right = st.columns([1.3, 5.4, 1.3])
     with left:
@@ -217,7 +265,6 @@ def render_footer_nav(idx, total):
                      type="primary", use_container_width=True):
             goto_question(idx - 1)
     with mid:
-        # End Exam: confirm, then go straight to the score report.
         with st.popover("⏹ End Exam", use_container_width=True):
             st.write("End the exam now and see your score report?")
             st.caption("Unanswered questions will be marked incorrect.")

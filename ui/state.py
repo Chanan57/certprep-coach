@@ -21,10 +21,12 @@ SCENARIO_SECTIONS = [
     "System Center 2012 Infrastructure",
     "Existing Environment",
     "Network Environment",
+    "Cloud Environment",
     "Technical Requirements",
     "Security Requirements",
     "General Requirements",
     "Business Requirements",
+    "Compliance Requirements",
     "Business Goals",
     "App1 Requirements",
     "Users and Groups",
@@ -38,6 +40,9 @@ SCENARIO_SECTIONS = [
     "App1",
 ]
 
+# Suffixes used to nest sections under a parent group in the case-study nav.
+GROUP_SUFFIXES = ["Environment", "Requirements", "Configuration", "Infrastructure"]
+
 
 # ---------------------------------------------------------------------------
 # Session state
@@ -45,27 +50,28 @@ SCENARIO_SECTIONS = [
 
 def initialise_session_state():
     defaults = {
-        "all_questions": [],          # full parsed bank for the chosen exam
-        "questions": [],              # the active set being practised
+        "all_questions": [],
+        "questions": [],
         "current_question_index": 0,
         "user_answers": {},
         "self_assessed": {},
-        "flagged_indexes": set(),      # "Review later"
-        "feedback_indexes": set(),     # "Leave Feedback"
+        "flagged_indexes": set(),
+        "feedback_indexes": set(),
         "quiz_started": False,
-        "quiz_completed": False,       # reached results/report
+        "quiz_completed": False,
         "show_setup": False,
-        "show_mode": False,            # exam-mode chooser page
+        "show_mode": False,
         "timed_mode": False,
         "time_limit_minutes": 30,
         "start_time": None,
         "image_dir": None,
         "source_label": "",
-        "exam_name": "",               # library exam name (for progress files)
-        "exam_mode": "full",           # "full" or "set:N"
-        "exam_sets": [],               # list[list[question]] when in sets mode
-        "cs_view": "__question__",     # active case-study section
-        "nav_collapsed": False,        # sidebar navigator collapse toggle
+        "exam_name": "",
+        "exam_mode": "full",
+        "exam_sets": [],
+        "app_mode": "practice",         # "practice" or "reading"
+        "cs_view": "__question__",
+        "nav_collapsed": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -86,7 +92,6 @@ def reset_quiz_progress():
 
 
 def full_reset():
-    """Return all the way to the home page, keeping nothing loaded."""
     reset_quiz_progress()
     st.session_state.all_questions = []
     st.session_state.questions = []
@@ -98,7 +103,6 @@ def full_reset():
 
 
 def go_home():
-    """Feature #2: jump back to the home page from anywhere."""
     full_reset()
     st.rerun()
 
@@ -113,7 +117,7 @@ def load_questions_into_state(questions, source_label, exam_name=""):
     st.session_state.source_label = source_label
     st.session_state.exam_name = exam_name or source_label
     reset_quiz_progress()
-    st.session_state.show_mode = True     # go to exam-mode chooser next
+    st.session_state.show_mode = True
     st.session_state.show_setup = False
 
 
@@ -156,7 +160,7 @@ def reset_answer(idx, question):
 
 
 # ---------------------------------------------------------------------------
-# Section categorisation (Standalone / Case Study / Lab)
+# Section categorisation
 # ---------------------------------------------------------------------------
 
 def section_of(q):
@@ -193,14 +197,33 @@ def format_question_text(text):
     if not text:
         return "_(See exhibit.)_"
     text = re.sub(r"\s+", " ", text).strip()
-    sentences = re.split(r"(?<=[.?!])\s+", text)
-    out = []
-    for s in sentences:
-        s = s.strip()
-        if not s:
+    text = re.sub(r"^[\-\u2022:]\s*", "", text).strip()
+    text = re.sub(r"\s*[\u2022]\s*", "\n\u2022 ", text)
+    text = re.sub(r"\s+-\s+(?=[A-Z0-9])", "\n\u2022 ", text)
+
+    lines = []
+    for chunk in text.split("\n"):
+        chunk = chunk.strip()
+        if not chunk:
             continue
-        out.append(f"**{s}**" if s.endswith("?") else s)
-    return "\n\n".join(out)
+        if chunk.startswith("\u2022 "):
+            lines.append("- " + chunk[2:].strip())
+        else:
+            for s in re.split(r"(?<=[.?!])\s+", chunk):
+                s = s.strip()
+                if not s:
+                    continue
+                lines.append(f"**{s}**" if s.endswith("?") else s)
+
+    out = []
+    prev_bullet = False
+    for ln in lines:
+        is_bullet = ln.startswith("- ")
+        if out and not (is_bullet and prev_bullet):
+            out.append("")
+        out.append(ln)
+        prev_bullet = is_bullet
+    return "\n".join(out)
 
 
 def split_scenario_sections(text):
@@ -224,11 +247,101 @@ def split_scenario_sections(text):
     return parts
 
 
+def group_sections(sections):
+    """
+    Turn a flat [(title, body)] list into a grouped nav structure.
+
+    Returns (nav, content) where:
+      nav = ordered list of items:
+          {"type": "single", "key": str, "label": str}
+        | {"type": "group",  "name": str, "children": [{"key","label"}]}
+      content = {key: (display_title, body)}
+
+    Grouping rules:
+      - Titles ending in a GROUP_SUFFIX (e.g. "Existing Environment",
+        "Technical Requirements") nest under that suffix as the parent group.
+      - A bare parent title (e.g. "Environment") becomes a child labelled
+        "General" within its group.
+      - Duplicate labels within a group are merged (bodies concatenated) so we
+        don't get two identical "Environment" entries.
+    """
+    def parent_of(title):
+        for suf in GROUP_SUFFIXES:
+            if title == suf:
+                return suf          # bare parent
+            if title.endswith(" " + suf) or title.endswith(suf):
+                return suf
+        return None
+
+    nav = []
+    content = {}
+    group_lookup = {}     # suffix -> nav group dict
+    key_counter = 0
+
+    def new_key():
+        nonlocal key_counter
+        key_counter += 1
+        return f"sec_{key_counter}"
+
+    # First pass: collect merged bodies per (group, label).
+    merged = {}   # (group, label) -> [bodies], preserve order
+    order = []    # list of ("single", title) or ("group", suffix, label)
+
+    for title, body in sections:
+        suf = parent_of(title)
+        if suf:
+            label = "General" if title == suf else title
+            slot = (suf, label)
+            if slot not in merged:
+                merged[slot] = []
+                order.append(("group", suf, label))
+            merged[slot].append(body)
+        else:
+            slot = ("__single__", title)
+            if slot not in merged:
+                merged[slot] = []
+                order.append(("single", title, None))
+            merged[slot].append(body)
+
+    for entry in order:
+        if entry[0] == "single":
+            title = entry[1]
+            body = "\n\n".join(merged[("__single__", title)]).strip()
+            key = new_key()
+            content[key] = (title, body)
+            nav.append({"type": "single", "key": key, "label": title})
+        else:
+            _kind, suf, label = entry
+            body = "\n\n".join(merged[(suf, label)]).strip()
+            key = new_key()
+            content[key] = (label if label != "General" else suf, body)
+            if suf not in group_lookup:
+                g = {"type": "group", "name": suf, "children": []}
+                group_lookup[suf] = g
+                nav.append(g)
+            display = label if label != "General" else f"{suf} (general)"
+            group_lookup[suf]["children"].append({"key": key, "label": display})
+
+    # Flatten single-child groups back into a single item (cleaner nav).
+    cleaned = []
+    for item in nav:
+        if item.get("type") == "group" and len(item["children"]) == 1:
+            child = item["children"][0]
+            cleaned.append({"type": "single", "key": child["key"],
+                            "label": item["name"]})
+            # relabel content to the group name for clarity
+            title, body = content[child["key"]]
+            content[child["key"]] = (item["name"], body)
+        else:
+            cleaned.append(item)
+    return cleaned, content
+
+
 def format_body(text):
     if not text:
         return text
     text = re.sub(r"\s+", " ", text).strip()
-    text = re.sub(r"\s*•\s*", "\n- ", text)
+    text = re.sub(r"\s*\u2022\s*", "\n- ", text)
     text = re.sub(r"(?<=[.?!])\s+(?=[A-Z])", "\n\n", text)
     return text.strip()
 
@@ -242,7 +355,7 @@ def hhmmss(total_seconds):
 
 
 # ---------------------------------------------------------------------------
-# Progress payload helpers (feature #3 & #6)
+# Progress payload helpers
 # ---------------------------------------------------------------------------
 
 def build_progress_payload():
@@ -270,6 +383,5 @@ def apply_progress_payload(data):
     st.session_state.current_question_index = data.get("current_index", 0)
     st.session_state.timed_mode = data.get("timed_mode", False)
     st.session_state.time_limit_minutes = data.get("time_limit_minutes", 30)
-    # Resume the clock accounting for already-elapsed time.
     elapsed = data.get("elapsed_seconds", 0)
     st.session_state.start_time = time.time() - elapsed

@@ -35,10 +35,23 @@ def inject_css():
         }
 
         /* ---- Global font + chrome -------------------------------------- */
-        html, body, [class*="css"], .stMarkdown, .stButton, .stRadio,
-        .stCheckbox, .stSelectbox, .stTextInput, .stTextArea, input, textarea,
-        button, select, h1, h2, h3, h4, h5, h6, p, div, span, label {
+        /* Apply Segoe UI to TEXT elements only. We deliberately avoid a blanket
+           'span' / '*' rule: Streamlit's dropdown & expander chevrons are
+           Material Symbols icon *ligatures* (e.g. "expand_more"). Forcing a text
+           font onto them makes the raw ligature words show up in the UI. */
+        html, body, .stApp, .stMarkdown, .stButton, .stRadio, .stCheckbox,
+        .stSelectbox, .stTextInput, .stTextArea, input, textarea, button,
+        select, h1, h2, h3, h4, h5, h6, p, label,
+        [data-testid="stMarkdownContainer"], [data-testid="stWidgetLabel"] {
             font-family: var(--font) !important;
+        }
+        /* Restore the Material icon font on icon glyphs so chevrons render
+           correctly instead of showing "expand_more" / "arrow_drop_down". */
+        [data-testid="stIconMaterial"], .material-icons, .material-icons-outlined,
+        span[class*="material-symbols"], [data-testid="stExpandIcon"],
+        [data-testid="stSelectboxVirtualDropdown"] span {
+            font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
+                         'Material Icons' !important;
         }
         body, .stApp {color: var(--ms-ink);}
         #MainMenu, header, footer {visibility: hidden;}

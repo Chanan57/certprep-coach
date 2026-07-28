@@ -1,22 +1,26 @@
 """
 AI vision layer for CertPrep Coach (OpenAI).
 
-Reads an exhibit image with a vision-capable model (gpt-4o / gpt-4o-mini) and
-returns structured data so drag-drop / hotspot boards can auto-populate and be
-auto-graded:
+Two jobs:
 
-    DRAG_DROP -> items, slots, answer_map (correct item per slot)
-    HOTSPOT   -> dropdowns [{label, options, correct}]
-    CHOICE    -> correct_answer (letters)
+1) extract_from_images(question, cfg)
+   Reads an exhibit image and returns structured answer data so drag-drop /
+   hotspot boards can auto-populate and be auto-graded.
 
-Configuration (NEVER hard-code the key):
-    OPENAI_API_KEY   – your key (env var or a git-ignored .env)
-    OPENAI_MODEL     – default "gpt-4o-mini" (vision-capable, cheap)
+2) categorize_images(question, cfg)
+   Classifies EACH image attached to a question as one of:
+       "table"       – a data table the scenario refers to (Users, Devices…)
+       "answer_area" – the question's answer area / answer key (drag-drop
+                       actions+order, hotspot dropdowns, Correct Answer boxes)
+       "exhibit"     – a configuration screenshot / diagram used as reference
+       "other"       – anything else (avatars, decoration)
+   This lets the UI route images correctly — e.g. keep answer-area images OUT
+   of the "Tables & exhibits" panel and show them with the answer instead.
 
-Results are cached to .cache/ai/<image-hash>.json so each question is only
-sent to the model once — one-time cost per exam for the whole team.
+Config (never hard-code the key):
+    OPENAI_API_KEY, OPENAI_MODEL (default gpt-4o-mini)
 
-No third-party SDK required; uses the REST API via `requests`.
+Everything is cached to .cache/ai/ so each image is only sent once.
 """
 
 import os
@@ -30,8 +34,9 @@ import requests
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AI_CACHE_DIR = os.path.join(PROJECT_ROOT, ".cache", "ai")
-
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
+
+VALID_CATEGORIES = {"table", "answer_area", "exhibit", "other"}
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +44,6 @@ OPENAI_URL = "https://api.openai.com/v1/chat/completions"
 # ---------------------------------------------------------------------------
 
 def _load_dotenv():
-    """Minimal .env loader (no dependency). Loads KEY=VALUE lines if present."""
     path = os.path.join(PROJECT_ROOT, ".env")
     if not os.path.exists(path):
         return
@@ -69,81 +73,7 @@ def is_configured(cfg):
 
 
 # ---------------------------------------------------------------------------
-# Prompt
-# ---------------------------------------------------------------------------
-
-SYSTEM_PROMPT = (
-    "You read screenshots of Microsoft certification practice questions and "
-    "return STRICT JSON describing the interactive answer area and the correct "
-    "answer. Use only what is visible in the image and the provided question "
-    "text. Never invent options. Respond with JSON only, no prose."
-)
-
-
-def _user_prompt(question_text, qtype):
-    schema = (
-        'Return JSON:\n'
-        '{\n'
-        '  "type": "DRAG_DROP" | "HOTSPOT" | "CHOICE",\n'
-        '  "items": [string],           // DRAG_DROP: source actions\n'
-        '  "slots": [string],           // DRAG_DROP: answer-area positions/targets\n'
-        '  "answer_map": {slot: item},  // DRAG_DROP: correct item per slot\n'
-        '  "dropdowns": [               // HOTSPOT\n'
-        '     {"label": string, "options": [string], "correct": string}\n'
-        '  ],\n'
-        '  "correct_answer": string,    // CHOICE: e.g. "B" or "AE"\n'
-        '  "notes": string\n'
-        '}\n'
-        'Omit keys that do not apply. Use exact wording from the image. '
-        'If the image shows a "Correct Answer" / answer area, use it to fill '
-        'answer_map / dropdowns[].correct / correct_answer.'
-    )
-    return f"Question type: {qtype}\nQuestion text:\n{question_text}\n\n{schema}"
-
-
-# ---------------------------------------------------------------------------
-# Cache
-# ---------------------------------------------------------------------------
-
-def _cache_key(image_paths, qtype, question_text):
-    h = hashlib.md5()
-    h.update((qtype or "").encode())
-    h.update((question_text or "")[:200].encode())
-    for p in image_paths:
-        try:
-            with open(p, "rb") as f:
-                h.update(hashlib.md5(f.read()).digest())
-        except Exception:
-            h.update(p.encode())
-    return h.hexdigest()
-
-
-def _cache_path(key):
-    os.makedirs(AI_CACHE_DIR, exist_ok=True)
-    return os.path.join(AI_CACHE_DIR, f"{key}.json")
-
-
-def _read_cache(key):
-    path = _cache_path(key)
-    if os.path.exists(path):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return None
-    return None
-
-
-def _write_cache(key, data):
-    try:
-        with open(_cache_path(key), "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-    except Exception:
-        pass
-
-
-# ---------------------------------------------------------------------------
-# API call
+# Low-level helpers
 # ---------------------------------------------------------------------------
 
 def _encode_image(path):
@@ -151,14 +81,13 @@ def _encode_image(path):
         return base64.b64encode(f.read()).decode("utf-8")
 
 
+def _image_block(path):
+    return {"type": "image_url",
+            "image_url": {"url": f"data:image/png;base64,{_encode_image(path)}"}}
+
+
 def _image_blocks(image_paths, max_images=4):
-    blocks = []
-    for p in image_paths[:max_images]:
-        if os.path.exists(p):
-            b64 = _encode_image(p)
-            blocks.append({"type": "image_url",
-                           "image_url": {"url": f"data:image/png;base64,{b64}"}})
-    return blocks
+    return [_image_block(p) for p in image_paths[:max_images] if os.path.exists(p)]
 
 
 def _parse_json(raw):
@@ -179,55 +108,103 @@ def _parse_json(raw):
     return {}
 
 
+def _img_hash(path):
+    try:
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()
+    except Exception:
+        return hashlib.md5(path.encode()).hexdigest()
+
+
+def _cache_read(key):
+    path = os.path.join(AI_CACHE_DIR, f"{key}.json")
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return None
+    return None
+
+
+def _cache_write(key, data):
+    os.makedirs(AI_CACHE_DIR, exist_ok=True)
+    try:
+        with open(os.path.join(AI_CACHE_DIR, f"{key}.json"), "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception:
+        pass
+
+
+def _post(cfg, messages, max_tokens=900):
+    body = {"model": cfg["model"], "messages": messages, "temperature": 0,
+            "max_tokens": max_tokens, "response_format": {"type": "json_object"}}
+    headers = {"Authorization": f"Bearer {cfg['api_key']}",
+               "Content-Type": "application/json"}
+    r = requests.post(OPENAI_URL, headers=headers, json=body, timeout=cfg["timeout"])
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
+
+
+# ---------------------------------------------------------------------------
+# 1) Answer extraction
+# ---------------------------------------------------------------------------
+
+EXTRACT_SYSTEM = (
+    "You read screenshots of Microsoft certification practice questions and "
+    "return STRICT JSON describing the interactive answer area and the correct "
+    "answer. Use only what is visible. Never invent options. JSON only."
+)
+
+
+def _extract_prompt(question_text, qtype):
+    schema = (
+        'Return JSON:\n'
+        '{\n'
+        '  "type": "DRAG_DROP" | "HOTSPOT" | "CHOICE",\n'
+        '  "items": [string], "slots": [string], "answer_map": {slot: item},\n'
+        '  "dropdowns": [{"label": string, "options": [string], "correct": string}],\n'
+        '  "correct_answer": string, "notes": string\n'
+        '}\nOmit keys that do not apply. Use exact wording from the image.'
+    )
+    return f"Question type: {qtype}\nQuestion text:\n{question_text}\n\n{schema}"
+
+
 def extract_from_images(question, cfg, use_cache=True):
-    """
-    Return a normalised dict:
-      {ok, type, items, slots, answer_map, dropdowns, correct_answer, notes,
-       error?}
-    Cached per image so repeat views cost nothing.
-    """
     if not is_configured(cfg):
         return {"ok": False, "error": "AI is not configured (no OPENAI_API_KEY)."}
-
     images = [p for p in question.get("images", []) if os.path.exists(p)]
     if not images:
         return {"ok": False, "error": "No exhibit images for this question."}
 
     qtype = question.get("type", "")
     qtext = question.get("question_text", "")
-    key = _cache_key(images, qtype, qtext)
+    key = "extract_" + hashlib.md5(
+        (qtype + qtext[:200] + "".join(_img_hash(p) for p in images)).encode()
+    ).hexdigest()
 
     if use_cache:
-        cached = _read_cache(key)
+        cached = _cache_read(key)
         if cached is not None:
             cached["ok"] = True
             cached["_cached"] = True
             return cached
 
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": [{"type": "text", "text": _user_prompt(qtext, qtype)}]
+        {"role": "system", "content": EXTRACT_SYSTEM},
+        {"role": "user", "content": [{"type": "text", "text": _extract_prompt(qtext, qtype)}]
                                      + _image_blocks(images)},
     ]
-    body = {"model": cfg["model"], "messages": messages, "temperature": 0,
-            "max_tokens": 900, "response_format": {"type": "json_object"}}
-    headers = {"Authorization": f"Bearer {cfg['api_key']}",
-               "Content-Type": "application/json"}
-
     try:
-        r = requests.post(OPENAI_URL, headers=headers, json=body, timeout=cfg["timeout"])
-        r.raise_for_status()
-        raw = r.json()["choices"][0]["message"]["content"]
+        raw = _post(cfg, messages)
     except requests.HTTPError as e:
-        return {"ok": False, "error": f"API error {e.response.status_code}: "
-                f"{e.response.text[:200]}"}
+        return {"ok": False, "error": f"API error {e.response.status_code}: {e.response.text[:200]}"}
     except Exception as e:  # noqa
         return {"ok": False, "error": f"Request failed: {e}"}
 
     data = _parse_json(raw)
     if not data:
         return {"ok": False, "error": "Could not parse AI response.", "raw": raw[:300]}
-
     data.setdefault("type", qtype)
     data.setdefault("items", [])
     data.setdefault("slots", [])
@@ -236,5 +213,81 @@ def extract_from_images(question, cfg, use_cache=True):
     data.setdefault("correct_answer", "")
     data.setdefault("notes", "")
     data["ok"] = True
-    _write_cache(key, data)
+    _cache_write(key, data)
     return data
+
+
+# ---------------------------------------------------------------------------
+# 2) Image classification
+# ---------------------------------------------------------------------------
+
+CLASSIFY_SYSTEM = (
+    "You classify a single screenshot from a Microsoft certification practice "
+    "question into exactly one category. Respond with STRICT JSON only."
+)
+
+CLASSIFY_PROMPT = (
+    "Classify this image into exactly one category:\n"
+    '- "table": a data table the scenario refers to (e.g. lists of users, '
+    "groups, devices, policies, servers).\n"
+    '- "answer_area": the question\'s answer area or answer key — drag-and-drop '
+    "actions/answer boxes, hotspot dropdowns, Yes/No selection grids, or a "
+    '"Correct Answer" panel.\n'
+    '- "exhibit": a configuration screenshot, settings pane, or diagram shown '
+    "as reference material.\n"
+    '- "other": avatars, logos, decorative or irrelevant images.\n\n'
+    'Return JSON: {"category": "table|answer_area|exhibit|other", '
+    '"reason": "short"}'
+)
+
+
+def classify_image(path, cfg, use_cache=True):
+    """Classify one image. Returns {'category':..., 'reason':..., 'ok':bool}."""
+    if not is_configured(cfg):
+        return {"ok": False, "category": "exhibit", "error": "AI not configured."}
+    if not os.path.exists(path):
+        return {"ok": False, "category": "other", "error": "missing file"}
+
+    key = "classify_" + _img_hash(path)
+    if use_cache:
+        cached = _cache_read(key)
+        if cached is not None:
+            cached["ok"] = True
+            cached["_cached"] = True
+            return cached
+
+    messages = [
+        {"role": "system", "content": CLASSIFY_SYSTEM},
+        {"role": "user", "content": [{"type": "text", "text": CLASSIFY_PROMPT},
+                                     _image_block(path)]},
+    ]
+    try:
+        raw = _post(cfg, messages, max_tokens=120)
+    except requests.HTTPError as e:
+        return {"ok": False, "category": "exhibit",
+                "error": f"API error {e.response.status_code}"}
+    except Exception as e:  # noqa
+        return {"ok": False, "category": "exhibit", "error": f"Request failed: {e}"}
+
+    data = _parse_json(raw)
+    cat = (data.get("category") or "exhibit").strip().lower()
+    if cat not in VALID_CATEGORIES:
+        cat = "exhibit"
+    result = {"ok": True, "category": cat, "reason": data.get("reason", "")}
+    _cache_write(key, result)
+    return result
+
+
+def categorize_images(question, cfg, use_cache=True):
+    """
+    Classify every image on a question and return buckets:
+        {"table": [...], "answer_area": [...], "exhibit": [...], "other": [...]}
+    Paths that don't exist are skipped.
+    """
+    buckets = {c: [] for c in VALID_CATEGORIES}
+    for p in question.get("images", []):
+        if not os.path.exists(p):
+            continue
+        res = classify_image(p, cfg, use_cache=use_cache)
+        buckets[res.get("category", "exhibit")].append(p)
+    return buckets

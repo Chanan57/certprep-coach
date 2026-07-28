@@ -17,6 +17,13 @@ from src.quiz_engine import (
     filter_by_topics, filter_by_types, get_time_remaining,
 )
 
+# AI image classification (optional).
+try:
+    from src import ai_extractor as ai
+    HAS_AI = True
+except Exception:  # noqa
+    HAS_AI = False
+
 from ui.state import (
     TYPE_LABELS, reset_quiz_progress, full_reset, load_questions_into_state,
     split_scenario_sections, group_sections, format_body, apply_progress_payload,
@@ -28,6 +35,45 @@ from ui.questions import (
     render_footer_nav, render_stem,
 )
 from ui.report import render_report
+
+
+def _ai_cfg():
+    if not HAS_AI:
+        return None
+    cfg = ai.get_config()
+    return cfg if ai.is_configured(cfg) else None
+
+
+def _categorized_images(question):
+    """
+    Return (reference_images, answer_images) for a question.
+
+    With AI configured, images are classified so 'answer_area' images are
+    separated from 'table'/'exhibit' reference images. Cached in session so we
+    classify each question once. Without AI, all images are treated as
+    reference (previous behaviour).
+    """
+    imgs = [p for p in question.get("images", []) if os.path.exists(p)]
+    if not imgs:
+        return [], []
+
+    cfg = _ai_cfg()
+    if not cfg:
+        return imgs, []
+
+    from ui.state import qid
+    cache = st.session_state.setdefault("_img_cats", {})
+    k = qid(question)
+    if k not in cache:
+        cache[k] = ai.categorize_images(question, cfg)
+    buckets = cache[k]
+
+    reference = buckets.get("table", []) + buckets.get("exhibit", [])
+    answer = buckets.get("answer_area", [])
+    # Anything uncategorised stays as reference so nothing disappears.
+    known = set(reference) | set(answer) | set(buckets.get("other", []))
+    reference += [p for p in imgs if p not in known]
+    return reference, answer
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +159,7 @@ def _load_exam_with_progress(exam, force):
 
 
 # ---------------------------------------------------------------------------
-# Mode chooser: Practice/Reading + Full/Sets/Quick + Resume/Fresh
+# Mode chooser
 # ---------------------------------------------------------------------------
 
 def show_mode_page():
@@ -123,7 +169,6 @@ def show_mode_page():
 
     all_q = st.session_state.all_questions
 
-    # --- Practice vs Reading ---
     st.markdown("### 📖 Mode")
     app_mode = st.radio(
         "Choose a mode",
@@ -132,7 +177,6 @@ def show_mode_page():
         key="mode_app", label_visibility="collapsed")
     is_reading = app_mode.startswith("Reading")
 
-    # --- Coverage: Full / Sets / Quick test ---
     st.markdown("### 🧩 Coverage")
     coverage = st.radio(
         "How much at once?",
@@ -143,7 +187,6 @@ def show_mode_page():
 
     chosen_set_idx = 0
     sets = []
-
     if coverage.startswith("60"):
         sets = eb.build_sets(all_q)
         st.session_state.exam_sets = sets
@@ -157,21 +200,16 @@ def show_mode_page():
         chosen_set_idx = st.selectbox(
             "Which set?", options=list(range(len(sets))),
             format_func=lambda i: f"Set {i+1} ({len(sets[i])} questions)", key="mode_set")
-
     elif coverage.startswith("⚡"):
-        # Build the quick test now so we can preview its mix.
         qt = eb.build_quick_test(all_q, size=10)
         st.session_state.exam_sets = [qt]
         mix = eb.type_breakdown(qt)
         mix_str = " · ".join(f"{TYPE_LABELS.get(t, t)} × {c}" for t, c in mix.items())
         st.caption(f"⚡ Quick test: **{len(qt)} questions** — {mix_str}")
-        cqa, _cqb = st.columns([1, 3])
-        with cqa:
-            if st.button("🔀 Reshuffle quick test", key="quick_reshuffle"):
-                st.session_state.exam_sets = [eb.build_quick_test(all_q, size=10)]
-                st.rerun()
+        if st.button("🔀 Reshuffle quick test", key="quick_reshuffle"):
+            st.session_state.exam_sets = [eb.build_quick_test(all_q, size=10)]
+            st.rerun()
 
-    # --- Timing (practice only) ---
     timed = False
     limit = 120
     if not is_reading:
@@ -181,7 +219,6 @@ def show_mode_page():
         limit = st.number_input("Time limit (minutes)", 1, 300, default_limit, 5,
                                 disabled=not timed, key="mode_limit")
 
-    # --- Resolve the exam_mode key (used for saved-progress files) ---
     if coverage.startswith("Full"):
         exam_mode = "full"
     elif coverage.startswith("⚡"):
@@ -190,7 +227,6 @@ def show_mode_page():
         exam_mode = f"set{chosen_set_idx + 1}"
 
     st.markdown("---")
-    # Resume / fresh (practice only; reading has no saved state)
     if not is_reading:
         summary = prog.progress_summary(st.session_state.exam_name, exam_mode)
         cols = st.columns(2)
@@ -220,7 +256,6 @@ def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
     if exam_mode == "full":
         questions = list(st.session_state.all_questions)
     elif exam_mode == "quick":
-        # Quick test was pre-built and stored in exam_sets[0].
         questions = list(st.session_state.exam_sets[0]) if st.session_state.exam_sets else []
     else:
         questions = list(sets[set_idx])
@@ -288,7 +323,10 @@ def _render_case_study(q, idx, reading):
     pos, size = q.get("case_position"), q.get("case_size")
     sections = split_scenario_sections(q["case_scenario"])
     nav, content = group_sections(sections)
-    imgs = [p for p in q.get("images", []) if os.path.exists(p)]
+
+    # AI-classified image routing: reference images (tables/exhibits) go in the
+    # left panel; answer-area images stay with the question on the right.
+    reference_imgs, answer_imgs = _categorized_images(q)
 
     panel, main = st.columns([1, 3])
 
@@ -309,7 +347,7 @@ def _render_case_study(q, idx, reading):
                              type="primary" if active else "secondary",
                              use_container_width=True):
                     st.session_state.cs_view = item["key"]; st.rerun()
-            else:  # group
+            else:
                 st.markdown(f"<div style='margin:.3rem 0 .1rem;font-weight:600;"
                             f"color:#605E5C;font-size:.8rem'>{item['name']}</div>",
                             unsafe_allow_html=True)
@@ -320,9 +358,11 @@ def _render_case_study(q, idx, reading):
                                  use_container_width=True):
                         st.session_state.cs_view = child["key"]; st.rerun()
 
-        if imgs:
+        # Only REFERENCE images appear in Tables & exhibits (not answer-area).
+        if reference_imgs:
             active = st.session_state.cs_view == "__exhibits__"
-            if st.button(f"🖼️ Tables & exhibits ({len(imgs)})", key=f"csnav_ex_{idx}",
+            if st.button(f"🖼️ Tables & exhibits ({len(reference_imgs)})",
+                         key=f"csnav_ex_{idx}",
                          type="primary" if active else "secondary", use_container_width=True):
                 st.session_state.cs_view = "__exhibits__"; st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
@@ -333,6 +373,11 @@ def _render_case_study(q, idx, reading):
             if view == "__question__":
                 st.caption("Here is a question that is tied to this case study.")
                 render_stem(q)
+                # Answer-area images belong with the question, not the exhibits.
+                if answer_imgs:
+                    with st.expander("🗝️ Answer area", expanded=reading):
+                        for p in answer_imgs:
+                            st.image(p, use_container_width=True)
                 if reading:
                     render_reading_body(q, idx, show_images_in_body=False)
                 else:
@@ -340,16 +385,16 @@ def _render_case_study(q, idx, reading):
                     render_question_controls(q, idx)
             elif view == "__exhibits__":
                 st.markdown("### 🖼️ Tables & exhibits")
-                for p in imgs:
+                for p in reference_imgs:
                     st.image(p, use_container_width=True)
                 st.info("Use **📝 Question** on the left to return and answer.")
             elif view in content:
                 title, body = content[view]
                 st.markdown(f"### {title}")
                 st.markdown(format_body(body))
-                if imgs and "table" in body.lower():
+                if reference_imgs and "table" in body.lower():
                     with st.expander("🖼️ Related tables & exhibits", expanded=True):
-                        for p in imgs:
+                        for p in reference_imgs:
                             st.image(p, use_container_width=True)
                 st.info("Use **📝 Question** on the left to return and answer.")
 
@@ -360,7 +405,6 @@ def _render_case_study(q, idx, reading):
 
 def show_results_page():
     if st.session_state.app_mode == "reading":
-        # Reading mode has no score; just offer navigation.
         st.title("📖 Reading complete")
         st.caption("Reading mode isn't scored. Choose what to do next.")
     else:

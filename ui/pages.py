@@ -252,6 +252,47 @@ def show_mode_page():
         st.rerun()
 
 
+def _prewarm_ai(questions):
+    """
+    Pre-process ALL questions with AI once, up front, so practice/reading is
+    instant (no buttons, no waiting per question). Classifies images and
+    extracts answers for visual questions. Everything is cached on disk + in
+    session, so this only ever runs once per exam set.
+    """
+    cfg = _ai_cfg()
+    if not cfg:
+        return  # No AI configured — nothing to pre-warm.
+
+    from ui.state import qid
+    img_cache = st.session_state.setdefault("_img_cats", {})
+    ext_cache = st.session_state.setdefault("_ai_ext", {})
+
+    # Only questions that actually need AI (have images).
+    targets = [q for q in questions if any(os.path.exists(p) for p in q.get("images", []))]
+    if not targets:
+        return
+
+    prog_bar = st.progress(0.0)
+    status = st.empty()
+    status.caption("🤖 Preparing questions with AI (one-time, cached)...")
+
+    for i, q in enumerate(targets):
+        k = qid(q)
+        # 1) Classify images (routes answer-area vs tables/exhibits).
+        if k not in img_cache:
+            img_cache[k] = ai.categorize_images(q, cfg)
+        # 2) Extract answers for visual / keyless questions.
+        needs_extract = (q.get("type") in ("DRAG DROP", "HOTSPOT")
+                         or (q.get("type") in ("SINGLE", "MULTI")
+                             and not q.get("correct_answer")))
+        if needs_extract and k not in ext_cache:
+            ext_cache[k] = ai.extract_from_images(q, cfg)
+        prog_bar.progress((i + 1) / len(targets))
+
+    status.empty()
+    prog_bar.empty()
+
+
 def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
     if exam_mode == "full":
         questions = list(st.session_state.all_questions)
@@ -272,6 +313,9 @@ def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
         data = prog.load_progress(st.session_state.exam_name, exam_mode)
         if data:
             apply_progress_payload(data)
+
+    # Pre-process with AI now (once) so practice/reading needs no clicks.
+    _prewarm_ai(questions)
 
     st.session_state.show_mode = False
     st.session_state.quiz_started = True

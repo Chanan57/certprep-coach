@@ -1,0 +1,21 @@
+{
+  "type": "DRAG_DROP",
+  "items": [
+    "Access level",
+    "Collaborators",
+    "Matched policy",
+    "Sensitivity label"
+  ],
+  "answer": [
+    "Access level",
+    "Sensitivity label"
+  ],
+  "answer_map": {
+    "When a file is shared externally.": "Access level",
+    "When a file is labelled as Internal only.": "Sensitivity label"
+  },
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

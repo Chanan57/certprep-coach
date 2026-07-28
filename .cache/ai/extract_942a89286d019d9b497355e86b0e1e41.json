@@ -1,0 +1,17 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "No",
+    "Yes"
+  ],
+  "answer": [
+    "No",
+    "Yes",
+    "Yes"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

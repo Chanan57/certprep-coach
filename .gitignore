@@ -1,0 +1,39 @@
+# ── Secrets & local config (NEVER commit) ─────────────────────────────
+.env
+*.env
+.env.*
+!.env.example
+corporate-ca.cer
+*.cer
+*.pem
+*.key
+
+# ── Exam data (large / confidential — keep local only) ─────────────────
+Sample Inputs/
+*.pdf
+
+# ── Caches & runtime artefacts ─────────────────────────────────────────
+.cache/
+.progress/
+certprep_img_*/
+*_images/
+certprep_results.csv
+certprep_score_report.csv
+
+# ── Python ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ── Streamlit ──────────────────────────────────────────────────────────
+.streamlit/secrets.toml
+
+# ── OS / editor ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log

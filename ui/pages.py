@@ -17,7 +17,6 @@ from src.quiz_engine import (
     filter_by_topics, filter_by_types, get_time_remaining,
 )
 
-# AI image classification (optional).
 try:
     from src import ai_extractor as ai
     HAS_AI = True
@@ -27,6 +26,7 @@ except Exception:  # noqa
 from ui.state import (
     TYPE_LABELS, reset_quiz_progress, full_reset, load_questions_into_state,
     split_scenario_sections, group_sections, format_body, apply_progress_payload,
+    qid,
 )
 from ui.header import render_exam_header
 from ui.navigator import render_navigator
@@ -45,32 +45,21 @@ def _ai_cfg():
 
 
 def _categorized_images(question):
-    """
-    Return (reference_images, answer_images) for a question.
-
-    With AI configured, images are classified so 'answer_area' images are
-    separated from 'table'/'exhibit' reference images. Cached in session so we
-    classify each question once. Without AI, all images are treated as
-    reference (previous behaviour).
-    """
+    """Return (reference_images, answer_images). AI classification keeps
+    answer-area images out of the tables/exhibits panel. Cached per question."""
     imgs = [p for p in question.get("images", []) if os.path.exists(p)]
     if not imgs:
         return [], []
-
     cfg = _ai_cfg()
     if not cfg:
         return imgs, []
-
-    from ui.state import qid
     cache = st.session_state.setdefault("_img_cats", {})
     k = qid(question)
     if k not in cache:
         cache[k] = ai.categorize_images(question, cfg)
     buckets = cache[k]
-
     reference = buckets.get("table", []) + buckets.get("exhibit", [])
     answer = buckets.get("answer_area", [])
-    # Anything uncategorised stays as reference so nothing disappears.
     known = set(reference) | set(answer) | set(buckets.get("other", []))
     reference += [p for p in imgs if p not in known]
     return reference, answer
@@ -104,8 +93,8 @@ def show_home_page():
             with colB:
                 if st.button("🔄 Re-parse (ignore cache)", key="lib_reparse"):
                     _load_exam_with_progress(chosen, force=True)
-            st.caption("💡 Re-parse if you want to capture community discussions for "
-                       "Reading mode from an exam loaded before this feature.")
+            st.caption("💡 Re-parse to capture community discussions for Reading mode "
+                       "from an exam loaded before that feature.")
 
     with tab_add:
         st.caption("Create a new exam folder and upload its PDF(s).")
@@ -253,44 +242,31 @@ def show_mode_page():
 
 
 def _prewarm_ai(questions):
-    """
-    Pre-process ALL questions with AI once, up front, so practice/reading is
-    instant (no buttons, no waiting per question). Classifies images and
-    extracts answers for visual questions. Everything is cached on disk + in
-    session, so this only ever runs once per exam set.
-    """
+    """Pre-process all questions with AI once, up front (progress bar), so
+    practice/reading is instant. Classifies images and extracts drag-drop /
+    hotspot answers. Cached on disk + session, so it only runs once per set."""
     cfg = _ai_cfg()
     if not cfg:
-        return  # No AI configured — nothing to pre-warm.
-
-    from ui.state import qid
+        return
     img_cache = st.session_state.setdefault("_img_cats", {})
     ext_cache = st.session_state.setdefault("_ai_ext", {})
-
-    # Only questions that actually need AI (have images).
     targets = [q for q in questions if any(os.path.exists(p) for p in q.get("images", []))]
     if not targets:
         return
-
-    prog_bar = st.progress(0.0)
+    bar = st.progress(0.0)
     status = st.empty()
     status.caption("🤖 Preparing questions with AI (one-time, cached)...")
-
     for i, q in enumerate(targets):
         k = qid(q)
-        # 1) Classify images (routes answer-area vs tables/exhibits).
         if k not in img_cache:
             img_cache[k] = ai.categorize_images(q, cfg)
-        # 2) Extract answers for visual / keyless questions.
-        needs_extract = (q.get("type") in ("DRAG DROP", "HOTSPOT")
-                         or (q.get("type") in ("SINGLE", "MULTI")
-                             and not q.get("correct_answer")))
-        if needs_extract and k not in ext_cache:
+        needs = (q.get("type") in ("DRAG DROP", "HOTSPOT")
+                 or (q.get("type") in ("SINGLE", "MULTI") and not q.get("correct_answer")))
+        if needs and k not in ext_cache:
             ext_cache[k] = ai.extract_from_images(q, cfg)
-        prog_bar.progress((i + 1) / len(targets))
-
+        bar.progress((i + 1) / len(targets))
     status.empty()
-    prog_bar.empty()
+    bar.empty()
 
 
 def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
@@ -314,7 +290,6 @@ def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
         if data:
             apply_progress_payload(data)
 
-    # Pre-process with AI now (once) so practice/reading needs no clicks.
     _prewarm_ai(questions)
 
     st.session_state.show_mode = False
@@ -367,9 +342,6 @@ def _render_case_study(q, idx, reading):
     pos, size = q.get("case_position"), q.get("case_size")
     sections = split_scenario_sections(q["case_scenario"])
     nav, content = group_sections(sections)
-
-    # AI-classified image routing: reference images (tables/exhibits) go in the
-    # left panel; answer-area images stay with the question on the right.
     reference_imgs, answer_imgs = _categorized_images(q)
 
     panel, main = st.columns([1, 3])
@@ -402,7 +374,6 @@ def _render_case_study(q, idx, reading):
                                  use_container_width=True):
                         st.session_state.cs_view = child["key"]; st.rerun()
 
-        # Only REFERENCE images appear in Tables & exhibits (not answer-area).
         if reference_imgs:
             active = st.session_state.cs_view == "__exhibits__"
             if st.button(f"🖼️ Tables & exhibits ({len(reference_imgs)})",
@@ -417,9 +388,10 @@ def _render_case_study(q, idx, reading):
             if view == "__question__":
                 st.caption("Here is a question that is tied to this case study.")
                 render_stem(q)
-                # Answer-area images belong with the question, not the exhibits.
-                if answer_imgs:
-                    with st.expander("🗝️ Answer area", expanded=reading):
+                # Answer-area image: shown ONLY in reading mode. Hidden entirely
+                # in practice mode so it never gives the answer away.
+                if answer_imgs and reading:
+                    with st.expander("🗝️ Answer area", expanded=True):
                         for p in answer_imgs:
                             st.image(p, use_container_width=True)
                 if reading:

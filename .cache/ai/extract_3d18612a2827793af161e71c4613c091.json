@@ -1,0 +1,17 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Upload to a restricted cloud service domain or access from an unallowed browsers",
+    "Paste to supported browsers",
+    "Sensitive service domain group restrictions configured"
+  ],
+  "answer": [
+    "Upload to a restricted cloud service domain or access from an unallowed browsers",
+    "Sensitive service domain group restrictions configured"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

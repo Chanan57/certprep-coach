@@ -1,0 +1,28 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "The message properties",
+    "A message header",
+    "The recipient",
+    "The sender",
+    "Contains any of these sensitive info types",
+    "Has specific properties including any of these words",
+    "Includes the classification",
+    "Includes the importance level",
+    "Is external/internal",
+    "Apply a disclaimer to the message.",
+    "Modify the message properties.",
+    "Modify the message security.",
+    "Redirect the message."
+  ],
+  "answer": [
+    "The sender",
+    "Is external/internal",
+    "Modify the message security."
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

@@ -1,0 +1,20 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Azure Storage infrastructure encryption and Microsoft-managed keys",
+    "Transparent Data Encryption (TDE) and customer-managed keys",
+    "Transparent Data Encryption (TDE) and Microsoft-managed keys"
+  ],
+  "answer": [
+    "Transparent Data Encryption (TDE) and customer-managed keys",
+    "Transparent Data Encryption (TDE) and customer-managed keys"
+  ],
+  "answer_map": {
+    "Serverless SQL pool": "Transparent Data Encryption (TDE) and customer-managed keys",
+    "Dedicated SQL pool": "Transparent Data Encryption (TDE) and customer-managed keys"
+  },
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

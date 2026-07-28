@@ -1,0 +1,10 @@
+{
+  "type": "HOTSPOT",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "2 Policies, 3 Rules",
+  "notes": "The minimum number of DLP policies and rules required to meet the specified requirements.",
+  "ok": true
+}

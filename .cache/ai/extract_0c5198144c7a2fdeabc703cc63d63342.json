@@ -1,0 +1,22 @@
+{
+  "type": "DRAG_DROP",
+  "items": [
+    "Elevated risk level",
+    "Minor risk level",
+    "Moderate risk level"
+  ],
+  "answer": [
+    "Minor risk level",
+    "Elevated risk level",
+    "Moderate risk level"
+  ],
+  "answer_map": {
+    "User1": "Minor risk level",
+    "User2": "Elevated risk level",
+    "User3": "Moderate risk level"
+  },
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

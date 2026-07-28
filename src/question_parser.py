@@ -3,6 +3,7 @@ import hashlib
 
 
 PAGE_MARKER_RE = re.compile(r"\[\[\[PAGE\s+(\d+)\]\]\]")
+IMG_MARKER_RE = re.compile(r"\[\[\[IMG:([0-9a-fA-F]+)\]\]\]")
 QUESTION_TYPES = ["DRAG DROP", "HOTSPOT", "SIMULATION"]
 COMMENT_MARKERS = ["Highly Voted", "Most Recent", "Selected Answer:",
                    "Community vote distribution", "upvoted"]
@@ -17,14 +18,26 @@ QUESTION_LEAD_RE = re.compile("|".join(QUESTION_LEADS), re.IGNORECASE)
 
 
 def strip_examtopics_noise(text):
-    text = re.sub(
-        r"\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}\s*[AP]M.*?examtopics\.com/\S*"
-        r"(?:\s*\n?\s*\d{1,4}/\d{1,4})?",
-        " ", text, flags=re.IGNORECASE | re.DOTALL)
+    """
+    Remove ExamTopics page headers/footers WITHOUT crossing into question text.
+
+    IMPORTANT: every rule here is LINE-SCOPED (anchored to a single line). We do
+    NOT use a greedy 'datetime ... examtopics.com' span, because some exports
+    (e.g. SC-100) put the datetime at the TOP of a page and the URL at the
+    BOTTOM — a greedy match would swallow the whole page's questions in between.
+    """
+    # Datetime stamp line: "5/6/25, 8:31 AM"
+    text = re.sub(r"(?m)^\s*\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}\s*[AP]M\s*$",
+                  " ", text)
+    # Title line: "... Free Actual Q&As, Page N | ExamTopics"
     text = re.sub(r"(?im)^.*Free Actual Q&As.*ExamTopics.*$", " ", text)
-    text = re.sub(r"https?://\S*examtopics\.com\S*", " ", text, flags=re.IGNORECASE)
+    # URL line (optionally followed by a page fraction like 9/230)
+    text = re.sub(r"(?im)^\s*https?://\S*examtopics\.com\S*(?:\s+\d{1,4}/\d{1,4})?\s*$",
+                  " ", text)
+    # A bare page fraction on its own line: "9/230"
     text = re.sub(r"(?m)^\s*\d{1,4}/\d{2,4}\s*$", " ", text)
-    text = re.sub(r"\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}\s*[AP]M", " ", text)
+    # Any leftover inline URL fragment (rare).
+    text = re.sub(r"https?://\S*examtopics\.com\S*", " ", text, flags=re.IGNORECASE)
     return text
 
 
@@ -36,11 +49,6 @@ def clean_text(text):
 
 
 def split_comments(text):
-    """
-    Split a block's question region from its community-discussion region.
-    Returns (question_part, community_part). The community part is what used
-    to be discarded; we now keep it for Reading mode.
-    """
     cut = len(text)
     for marker in COMMENT_MARKERS:
         idx = text.find(marker)
@@ -53,12 +61,10 @@ def split_comments(text):
 
 
 def clean_community(text):
-    """Tidy the community discussion text for readable display."""
     if not text:
         return ""
     text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    # Put common markers on their own lines for readability.
     for mk in ["Highly Voted", "Most Recent", "Selected Answer:",
                "Community vote distribution"]:
         text = text.replace(mk, "\n\n**" + mk + "**")
@@ -66,14 +72,12 @@ def clean_community(text):
 
 
 def extract_suggested_answer(community):
-    """Most frequent 'Selected Answer: X' in the community, if any."""
     if not community:
         return ""
     picks = re.findall(r"Selected\s*Answer\s*:?\s*([A-F]{1,6})", community, re.IGNORECASE)
     if not picks:
         return ""
     picks = ["".join(sorted(p.upper())) for p in picks]
-    # return the most common
     return max(set(picks), key=picks.count)
 
 
@@ -120,9 +124,24 @@ def scenario_key(scenario):
     return hashlib.md5(norm.encode("utf-8")).hexdigest()[:12]
 
 
-def parse_questions(raw_text, page_images=None):
-    if page_images is None:
-        page_images = {}
+def _images_from_block(block, image_map):
+    if not image_map:
+        return []
+    paths = []
+    for h in IMG_MARKER_RE.findall(block):
+        path = image_map.get(h.lower()) or image_map.get(h)
+        if path and path not in paths:
+            paths.append(path)
+    return paths
+
+
+def parse_questions(raw_text, image_map=None):
+    if image_map is None:
+        image_map = {}
+    # Ignore a legacy {page:int -> [paths]} dict (old callers/tests).
+    if image_map and all(isinstance(k, int) for k in image_map.keys()):
+        image_map = {}
+
     raw_text = strip_examtopics_noise(raw_text)
     text = clean_text(raw_text)
 
@@ -136,11 +155,16 @@ def parse_questions(raw_text, page_images=None):
         block = text[start:end]
         topic_num = match.group(1)
         q_num = match.group(2)
-        pages = [int(p) for p in PAGE_MARKER_RE.findall(block)]
+
+        images = _images_from_block(block, image_map)
 
         block_clean = PAGE_MARKER_RE.sub(" ", block)
+        block_clean = IMG_MARKER_RE.sub(" ", block_clean)
         block_clean = header_re.sub(" ", block_clean, count=1).strip()
         block_clean = re.sub(r"^\s*QUESTION\s*NO:?\s*\d+", " ", block_clean,
+                             flags=re.IGNORECASE).strip()
+        # Remove a leading "Question Set N" label if present (SC-100 style).
+        block_clean = re.sub(r"^\s*Question\s*Set\s*\d+", " ", block_clean,
                              flags=re.IGNORECASE).strip()
 
         qtype = detect_type(block_clean)
@@ -151,19 +175,14 @@ def parse_questions(raw_text, page_images=None):
         if ans:
             correct = ans.group(1).upper()
 
-        # Everything after "Correct Answer" holds the answer + community text.
         after_parts = re.split(r"Correct\s*Answer\s*:", block_clean, flags=re.IGNORECASE)
         region = after_parts[0]
         after = after_parts[1] if len(after_parts) > 1 else ""
 
-        # Community discussion = the after-answer text (strip the leading letter).
         community_raw = re.sub(r"^\s*\**\s*[A-F]{1,6}\s*", "", after).strip()
-        # Extract the community's voted answer from the RAW text (before we add
-        # markdown formatting, which would otherwise break the regex).
         suggested = extract_suggested_answer(community_raw)
         community = clean_community(community_raw)
 
-        # Question/options: cut community out of the region too (rare, safety).
         region, _ = split_comments(region)
         for kw in QUESTION_TYPES:
             region = re.sub(r"^\s*" + re.escape(kw), " ", region, flags=re.IGNORECASE).strip()
@@ -196,12 +215,6 @@ def parse_questions(raw_text, page_images=None):
             final_type = "MULTI" if is_multi else "SINGLE"
             gradable = bool(options) and bool(correct)
 
-        images = []
-        for p in pages:
-            for path in page_images.get(p, []):
-                if path not in images:
-                    images.append(path)
-
         if not stem and not options and not images and not scenario:
             continue
 
@@ -222,7 +235,6 @@ def parse_questions(raw_text, page_images=None):
             "case_scenario": scenario,
             "case_position": None,
             "case_size": None,
-            # Reading-mode data:
             "community": community,
             "suggested_answer": suggested,
         })

@@ -1,0 +1,20 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "An alert",
+    "A policy",
+    "A risky user",
+    "A notice template",
+    "Forensic evidence",
+    "Admin1, Admin2, Admin3, and Admin4 only"
+  ],
+  "answer": [
+    "A risky user",
+    "Admin1, Admin2, Admin3, and Admin4 only"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

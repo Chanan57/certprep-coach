@@ -1,26 +1,18 @@
 """
 AI vision layer for CertPrep Coach (OpenAI).
 
-Two jobs:
+extract_from_images(question, cfg) -> structured answer data
+    DRAG_DROP -> items (all actions), answer (ordered correct items)
+    HOTSPOT   -> dropdowns [{label, options, correct}]
+    CHOICE    -> correct_answer
+classify_image / categorize_images -> table | answer_area | exhibit | other
 
-1) extract_from_images(question, cfg)
-   Reads an exhibit image and returns structured answer data so drag-drop /
-   hotspot boards can auto-populate and be auto-graded.
-
-2) categorize_images(question, cfg)
-   Classifies EACH image attached to a question as one of:
-       "table"       – a data table the scenario refers to (Users, Devices…)
-       "answer_area" – the question's answer area / answer key (drag-drop
-                       actions+order, hotspot dropdowns, Correct Answer boxes)
-       "exhibit"     – a configuration screenshot / diagram used as reference
-       "other"       – anything else (avatars, decoration)
-   This lets the UI route images correctly — e.g. keep answer-area images OUT
-   of the "Tables & exhibits" panel and show them with the answer instead.
-
-Config (never hard-code the key):
+Config (never hard-code):
     OPENAI_API_KEY, OPENAI_MODEL (default gpt-4o-mini)
+    OPENAI_CA_BUNDLE  -> path to a corporate root-CA .pem/.cer so requests can
+                         trust an SSL-inspection proxy (NCS network). Optional.
 
-Everything is cached to .cache/ai/ so each image is only sent once.
+Cached to .cache/ai/ so each image is sent once.
 """
 
 import os
@@ -35,13 +27,8 @@ import requests
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AI_CACHE_DIR = os.path.join(PROJECT_ROOT, ".cache", "ai")
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
-
 VALID_CATEGORIES = {"table", "answer_area", "exhibit", "other"}
 
-
-# ---------------------------------------------------------------------------
-# Config
-# ---------------------------------------------------------------------------
 
 def _load_dotenv():
     path = os.path.join(PROJECT_ROOT, ".env")
@@ -62,19 +49,46 @@ def get_config(overrides=None):
         "api_key": os.getenv("OPENAI_API_KEY", ""),
         "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         "timeout": int(os.getenv("AI_TIMEOUT", "60")),
+        # Corporate CA bundle for SSL-inspection proxies (NCS network).
+        "ca_bundle": os.getenv("OPENAI_CA_BUNDLE", "")
+                     or os.getenv("REQUESTS_CA_BUNDLE", ""),
     }
     if overrides:
         cfg.update({k: v for k, v in overrides.items() if v})
     return cfg
 
 
+def _verify(cfg):
+    """Value for requests' `verify=` — the corporate CA path if provided,
+    else True (normal verification)."""
+    ca = cfg.get("ca_bundle")
+    if ca and os.path.exists(ca):
+        return ca
+    return True
+
+
 def is_configured(cfg):
     return bool(cfg.get("api_key"))
 
 
-# ---------------------------------------------------------------------------
-# Low-level helpers
-# ---------------------------------------------------------------------------
+def config_status():
+    """Human-readable reason the AI is / isn't available (for diagnostics)."""
+    cfg = get_config()
+    if not cfg.get("api_key"):
+        env_file = os.path.join(PROJECT_ROOT, ".env")
+        if os.path.exists(env_file):
+            return False, ("Found a .env file but no OPENAI_API_KEY in it. "
+                           "Add: OPENAI_API_KEY=sk-...")
+        return False, ("No OPENAI_API_KEY found. Create a .env with "
+                       "OPENAI_API_KEY=sk-..., then restart the app.")
+    ca = cfg.get("ca_bundle")
+    if ca and not os.path.exists(ca):
+        return True, (f"AI key found, but OPENAI_CA_BUNDLE path does not exist: "
+                      f"{ca}")
+    if ca:
+        return True, f"AI ready (model: {cfg['model']}, corporate CA in use)."
+    return True, f"AI ready (model: {cfg['model']})."
+
 
 def _encode_image(path):
     with open(path, "rb") as f:
@@ -141,19 +155,16 @@ def _post(cfg, messages, max_tokens=900):
             "max_tokens": max_tokens, "response_format": {"type": "json_object"}}
     headers = {"Authorization": f"Bearer {cfg['api_key']}",
                "Content-Type": "application/json"}
-    r = requests.post(OPENAI_URL, headers=headers, json=body, timeout=cfg["timeout"])
+    r = requests.post(OPENAI_URL, headers=headers, json=body,
+                      timeout=cfg["timeout"], verify=_verify(cfg))
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
 
-# ---------------------------------------------------------------------------
-# 1) Answer extraction
-# ---------------------------------------------------------------------------
-
 EXTRACT_SYSTEM = (
     "You read screenshots of Microsoft certification practice questions and "
-    "return STRICT JSON describing the interactive answer area and the correct "
-    "answer. Use only what is visible. Never invent options. JSON only."
+    "return STRICT JSON describing the answer area and the correct answer. "
+    "Use only what is visible. Never invent options. JSON only."
 )
 
 
@@ -162,10 +173,17 @@ def _extract_prompt(question_text, qtype):
         'Return JSON:\n'
         '{\n'
         '  "type": "DRAG_DROP" | "HOTSPOT" | "CHOICE",\n'
-        '  "items": [string], "slots": [string], "answer_map": {slot: item},\n'
+        '  "items": [string],   // DRAG_DROP: ALL draggable actions/filters shown\n'
+        '  "answer": [string],  // DRAG_DROP: correct items in the exact answer order\n'
+        '  "answer_map": {slot: item},  // DRAG_DROP match-type: correct item per target\n'
         '  "dropdowns": [{"label": string, "options": [string], "correct": string}],\n'
-        '  "correct_answer": string, "notes": string\n'
-        '}\nOmit keys that do not apply. Use exact wording from the image.'
+        '  "correct_answer": string,   // CHOICE: e.g. "B" or "AE"\n'
+        '  "notes": string\n'
+        '}\n'
+        'For DRAG_DROP: "items" is every draggable action/filter; if it is a '
+        'match-to-target question (drag filters to conditions), fill "answer_map" '
+        'as {condition: filter}. If it is an ordering question, fill "answer" '
+        'with the correct order. Use exact wording from the image.'
     )
     return f"Question type: {qtype}\nQuestion text:\n{question_text}\n\n{schema}"
 
@@ -205,70 +223,57 @@ def extract_from_images(question, cfg, use_cache=True):
     data = _parse_json(raw)
     if not data:
         return {"ok": False, "error": "Could not parse AI response.", "raw": raw[:300]}
+
     data.setdefault("type", qtype)
     data.setdefault("items", [])
-    data.setdefault("slots", [])
+    data.setdefault("answer", [])
     data.setdefault("answer_map", {})
     data.setdefault("dropdowns", [])
     data.setdefault("correct_answer", "")
     data.setdefault("notes", "")
+    if not data["answer"] and data["answer_map"]:
+        data["answer"] = [data["answer_map"][k] for k in sorted(data["answer_map"].keys())]
+    for a in data["answer"]:
+        if a not in data["items"]:
+            data["items"].append(a)
     data["ok"] = True
     _cache_write(key, data)
     return data
 
 
-# ---------------------------------------------------------------------------
-# 2) Image classification
-# ---------------------------------------------------------------------------
-
 CLASSIFY_SYSTEM = (
     "You classify a single screenshot from a Microsoft certification practice "
     "question into exactly one category. Respond with STRICT JSON only."
 )
-
 CLASSIFY_PROMPT = (
     "Classify this image into exactly one category:\n"
-    '- "table": a data table the scenario refers to (e.g. lists of users, '
-    "groups, devices, policies, servers).\n"
-    '- "answer_area": the question\'s answer area or answer key — drag-and-drop '
-    "actions/answer boxes, hotspot dropdowns, Yes/No selection grids, or a "
-    '"Correct Answer" panel.\n'
-    '- "exhibit": a configuration screenshot, settings pane, or diagram shown '
-    "as reference material.\n"
-    '- "other": avatars, logos, decorative or irrelevant images.\n\n'
-    'Return JSON: {"category": "table|answer_area|exhibit|other", '
-    '"reason": "short"}'
+    '- "table": a data table the scenario refers to.\n'
+    '- "answer_area": the question\'s answer area or answer key.\n'
+    '- "exhibit": a configuration screenshot/diagram used as reference.\n'
+    '- "other": avatars, logos, decorative images.\n\n'
+    'Return JSON: {"category": "table|answer_area|exhibit|other", "reason": "short"}'
 )
 
 
 def classify_image(path, cfg, use_cache=True):
-    """Classify one image. Returns {'category':..., 'reason':..., 'ok':bool}."""
     if not is_configured(cfg):
         return {"ok": False, "category": "exhibit", "error": "AI not configured."}
     if not os.path.exists(path):
         return {"ok": False, "category": "other", "error": "missing file"}
-
     key = "classify_" + _img_hash(path)
     if use_cache:
         cached = _cache_read(key)
         if cached is not None:
             cached["ok"] = True
-            cached["_cached"] = True
             return cached
-
     messages = [
         {"role": "system", "content": CLASSIFY_SYSTEM},
-        {"role": "user", "content": [{"type": "text", "text": CLASSIFY_PROMPT},
-                                     _image_block(path)]},
+        {"role": "user", "content": [{"type": "text", "text": CLASSIFY_PROMPT}, _image_block(path)]},
     ]
     try:
         raw = _post(cfg, messages, max_tokens=120)
-    except requests.HTTPError as e:
-        return {"ok": False, "category": "exhibit",
-                "error": f"API error {e.response.status_code}"}
     except Exception as e:  # noqa
-        return {"ok": False, "category": "exhibit", "error": f"Request failed: {e}"}
-
+        return {"ok": False, "category": "exhibit", "error": f"{e}"}
     data = _parse_json(raw)
     cat = (data.get("category") or "exhibit").strip().lower()
     if cat not in VALID_CATEGORIES:
@@ -279,11 +284,6 @@ def classify_image(path, cfg, use_cache=True):
 
 
 def categorize_images(question, cfg, use_cache=True):
-    """
-    Classify every image on a question and return buckets:
-        {"table": [...], "answer_area": [...], "exhibit": [...], "other": [...]}
-    Paths that don't exist are skipped.
-    """
     buckets = {c: [] for c in VALID_CATEGORIES}
     for p in question.get("images", []):
         if not os.path.exists(p):

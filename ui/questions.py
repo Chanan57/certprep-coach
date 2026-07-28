@@ -1,9 +1,10 @@
 """Question rendering: practice widgets, reading view, and controls.
 
-AI results are pre-warmed at mode start (see ui/pages.py::_prewarm_ai), so the
-renderers here just READ the cached extraction — no buttons or waiting during
-practice/reading. If AI wasn't configured/pre-warmed, they fall back to the
-manual build / reveal-exhibit flow automatically.
+Drag-drop / hotspot try to use AI automatically:
+  1. use the pre-warmed cache if present,
+  2. else extract on-the-spot (once) if AI is configured,
+  3. else show a CLEAR reason (e.g. no API key) + manual fallback.
+So users only ever type as a last resort, and always know why.
 """
 
 import os
@@ -17,6 +18,19 @@ try:
     HAS_SORTABLES = True
 except Exception:  # noqa
     HAS_SORTABLES = False
+
+try:
+    from src import ai_extractor as ai
+    HAS_AI_MODULE = True
+except Exception:  # noqa
+    HAS_AI_MODULE = False
+
+
+def _ai_cfg():
+    if not HAS_AI_MODULE:
+        return None
+    cfg = ai.get_config()
+    return cfg if ai.is_configured(cfg) else None
 
 
 def show_images(images, caption="🖼️ Exhibit / image", expanded=True):
@@ -33,10 +47,47 @@ def _has_images(question):
     return any(os.path.exists(p) for p in question.get("images", []))
 
 
-def _cached_extraction(question):
-    """Return the pre-warmed AI extraction for this question, or None."""
-    cache = st.session_state.get("_ai_ext", {})
-    return cache.get(qid(question))
+def _practice_images(question):
+    imgs = [p for p in question.get("images", []) if os.path.exists(p)]
+    cats = st.session_state.get("_img_cats", {}).get(qid(question))
+    if not cats:
+        return imgs
+    answer_area = set(cats.get("answer_area", []))
+    return [p for p in imgs if p not in answer_area]
+
+
+def _ensure_extraction(question):
+    """
+    Return a usable AI extraction for this question:
+      - from the pre-warm cache if present,
+      - else extract on-the-spot (once) when AI is configured (cached after),
+      - else None.
+    """
+    cache = st.session_state.setdefault("_ai_ext", {})
+    k = qid(question)
+    if k in cache and cache[k].get("ok"):
+        return cache[k]
+
+    cfg = _ai_cfg()
+    if not cfg:
+        return None
+    if not _has_images(question):
+        return None
+
+    with st.spinner("🤖 Reading the exhibit with AI..."):
+        res = ai.extract_from_images(question, cfg)
+    cache[k] = res
+    return res if res.get("ok") else None
+
+
+def _ai_unavailable_note():
+    """Explain, in one line, why AI auto-fill isn't happening."""
+    if not HAS_AI_MODULE:
+        st.caption("⚠️ AI module not found — using manual entry.")
+        return
+    ok, msg = ai.config_status()
+    if not ok:
+        st.caption(f"🔑 {msg}")
 
 
 def render_stem(question):
@@ -107,10 +158,6 @@ def render_choice(question, idx, multi, ai_answer=None):
         render_self_assess(idx)
 
 
-# ---------------------------------------------------------------------------
-# Reveal helper (fallback when AI hasn't provided an answer)
-# ---------------------------------------------------------------------------
-
 def _reveal_exhibit(question, idx, label):
     if not _has_images(question):
         st.warning("No exhibit image was captured for this question. "
@@ -134,67 +181,63 @@ def _reveal_exhibit(question, idx, label):
 # ---------------------------------------------------------------------------
 
 def render_dragdrop(question, idx, show_imgs=True):
-    st.caption("**Drag and Drop / Build List** — drag the actions into the "
-               "**Answer Area** in the correct order.")
     key = qid(question)
-    ext = _cached_extraction(question)
-    ai_items = (ext or {}).get("items") if ext and ext.get("ok") else []
-    ai_map = (ext or {}).get("answer_map") if ext and ext.get("ok") else {}
+    ext = _ensure_extraction(question)
+    ai_items = list(ext.get("items", [])) if ext else []
+    ai_answer = list(ext.get("answer", [])) if ext else []
 
-    if not HAS_SORTABLES:
-        st.info("💡 Install **streamlit-sortables** for true drag-and-drop.")
-        _dragdrop_manual(question, idx, key)
-        _reveal_exhibit(question, idx, "🗝️ Exhibit — actions & correct order")
-        render_self_assess(idx)
-        return
-
-    if ai_items:
-        st.caption("🤖 Actions auto-loaded from the exhibit.")
-        actions = list(ai_items)
-    else:
-        seed_key = f"ddseed_{key}"
-        seed = st.text_area(
-            "✏️ Actions from the exhibit (one per line):",
-            value=st.session_state.get(seed_key, ""), key=f"ddseedbox_{key}", height=110,
-            placeholder="Create a sensitivity label.\nCreate an auto-labeling policy.")
-        st.session_state[seed_key] = seed
-        actions = [x.strip() for x in seed.splitlines() if x.strip()]
-
-    if not actions:
-        st.info("⬆️ Provide the actions to activate the draggable board.")
-    else:
+    # BEST: AI gave us actions + correct order -> auto board, auto grade, no typing.
+    if HAS_SORTABLES and ai_items:
+        if ai_answer:
+            n = len(ai_answer)
+            st.caption(f"**Drag and Drop** — drag **{n}** action(s) into the "
+                       f"**Answer Area** in the correct order.")
+        else:
+            st.caption("**Drag and Drop** — drag the actions into the Answer Area, "
+                       "then reveal the exhibit to check.")
         containers = [
-            {"header": "📋 Actions (available)", "items": list(actions)},
-            {"header": "✅ Answer Area (your order)", "items": []},
+            {"header": "📋 Actions", "items": ai_items},
+            {"header": "✅ Answer Area", "items": []},
         ]
         try:
             arranged = sort_items(containers, multi_containers=True, key=f"ddsort_{key}")
         except TypeError:
             arranged = sort_items(containers, multi_containers=True)
-
-        answer = []
+        placed = []
         for c in arranged:
             if c["header"].startswith("✅"):
-                answer = c["items"]
-        if answer:
-            st.markdown("**Your sequence:**")
-            for i, a in enumerate(answer, 1):
-                st.markdown(f"{i}. {a}")
-            st.session_state.user_answers[idx] = " | ".join(answer)
+                placed = c["items"]
+        st.session_state.user_answers[idx] = " | ".join(placed)
 
-            if ai_map:
-                if st.button("Check order", key=f"ddcheck_{idx}"):
-                    correct_order = [ai_map[k] for k in sorted(ai_map.keys())]
-                    if answer == correct_order:
-                        st.success("✅ Correct order!")
-                        st.session_state.self_assessed[idx] = "correct"
-                    else:
-                        st.error("❌ Not quite. Correct order: " + " → ".join(correct_order))
-                        st.session_state.self_assessed[idx] = "incorrect"
+        if ai_answer:
+            st.caption(f"Placed {len(placed)} of {len(ai_answer)} in the Answer Area.")
+            if st.button("Check answer", key=f"ddcheck_{idx}"):
+                if placed == ai_answer:
+                    st.success("✅ Correct! Your order matches the answer.")
+                    st.session_state.self_assessed[idx] = "correct"
+                else:
+                    st.error("❌ Not quite.")
+                    st.session_state.self_assessed[idx] = "incorrect"
+                    with st.expander("Show correct order", expanded=True):
+                        for i, a in enumerate(ai_answer, 1):
+                            st.markdown(f"{i}. {a}")
+        else:
+            _reveal_exhibit(question, idx, "🗝️ Exhibit — correct order")
+            render_self_assess(idx)
+        return
 
-    if not ai_map:
-        _reveal_exhibit(question, idx, "🗝️ Exhibit — actions & correct order")
-        render_self_assess(idx)
+    # FALLBACK: no AI extraction available — explain why, then manual builder.
+    st.caption("**Drag and Drop / Build List** — arrange the actions in order.")
+    _ai_unavailable_note()
+    if not HAS_SORTABLES:
+        st.info("💡 Install **streamlit-sortables** for true drag-and-drop.")
+    # Offer a manual retry if AI is configured (e.g. a transient API error).
+    if _ai_cfg() and st.button("🤖 Try AI extraction again", key=f"airetry_{idx}"):
+        st.session_state.get("_ai_ext", {}).pop(key, None)
+        st.rerun()
+    _dragdrop_manual(question, idx, key)
+    _reveal_exhibit(question, idx, "🗝️ Exhibit — actions & correct order")
+    render_self_assess(idx)
 
 
 def _dragdrop_manual(question, idx, key):
@@ -243,11 +286,10 @@ def parse_hotspot_lines(raw):
 def render_hotspot(question, idx, show_imgs=True):
     st.caption("**Hotspot / Active Screen** — make a selection for each dropdown.")
     key = qid(question)
-    ext = _cached_extraction(question)
-    ai_dropdowns = (ext or {}).get("dropdowns") if ext and ext.get("ok") else []
+    ext = _ensure_extraction(question)
+    ai_dropdowns = ext.get("dropdowns") if ext else []
 
     if ai_dropdowns:
-        st.caption("🤖 Dropdowns auto-loaded from the exhibit.")
         groups = [(d.get("label", f"Dropdown {i+1}"), d.get("options", []))
                   for i, d in enumerate(ai_dropdowns)]
         correct = {d.get("label"): d.get("correct", "") for d in ai_dropdowns}
@@ -270,6 +312,7 @@ def render_hotspot(question, idx, show_imgs=True):
                 st.session_state.self_assessed[idx] = "incorrect"
         return
 
+    _ai_unavailable_note()
     with st.expander("🧩 Optional: build your answer", expanded=False):
         st.caption("Type each dropdown as `Label = opt1 | opt2 | opt3`.")
         stem = (question.get("question_text") or "").lower()
@@ -288,7 +331,6 @@ def render_hotspot(question, idx, show_imgs=True):
             if picked:
                 st.caption("Your selections: "
                            + " · ".join(f"**{l}** → {v}" for l, v in picked.items()))
-
     _reveal_exhibit(question, idx, "🗝️ Exhibit — dropdowns & correct selections")
     render_self_assess(idx)
 
@@ -304,11 +346,11 @@ def render_question_body(question, idx, show_images_in_body=True):
     qtype = question["type"]
     if qtype in ("SINGLE", "MULTI"):
         if show_images_in_body:
-            show_images(question["images"], "🖼️ Exhibit / image")
+            show_images(_practice_images(question), "🖼️ Exhibit / image")
         ai_answer = None
         if not question.get("correct_answer"):
-            ext = _cached_extraction(question)
-            ai_answer = (ext or {}).get("correct_answer") if ext and ext.get("ok") else None
+            ext = _ensure_extraction(question)
+            ai_answer = (ext or {}).get("correct_answer") if ext else None
         render_choice(question, idx, multi=(qtype == "MULTI"), ai_answer=ai_answer)
     elif qtype == "HOTSPOT":
         render_hotspot(question, idx)
@@ -325,7 +367,6 @@ def render_question_body(question, idx, show_images_in_body=True):
 def render_reading_body(question, idx, show_images_in_body=True):
     qtype = question.get("type")
     is_visual = qtype in ("HOTSPOT", "DRAG DROP", "SIMULATION")
-
     if is_visual or show_images_in_body:
         cap = "🗝️ Exhibit & answer key" if is_visual else "🖼️ Exhibit / image"
         shown = show_images(question.get("images", []), cap, expanded=True)
@@ -335,30 +376,21 @@ def render_reading_body(question, idx, show_images_in_body=True):
     options = question.get("options", {})
     correct = question.get("correct_answer", "")
     suggested = question.get("suggested_answer", "")
-    ext = _cached_extraction(question)
+    ext = st.session_state.get("_ai_ext", {}).get(qid(question))
+    ext = ext if (ext and ext.get("ok")) else None
 
     if options:
         st.markdown("**Options:**")
         for k, v in options.items():
-            if k in correct:
-                st.markdown(f"- **{k}. {v}  ✅**")
-            else:
-                st.markdown(f"- {k}. {v}")
+            st.markdown(f"- **{k}. {v}  ✅**" if k in correct else f"- {k}. {v}")
 
     ans = correct or suggested or ((ext or {}).get("correct_answer") if ext else "")
     if ans:
-        if correct:
-            src = "PDF key"
-        elif suggested:
-            src = "community vote"
-        else:
-            src = "AI"
+        src = "PDF key" if correct else ("community vote" if suggested else "AI")
         st.success(f"**Correct answer: {ans}**  ·  _({src})_")
-    elif is_visual and ext and ext.get("ok"):
-        # Show AI-extracted answer for drag-drop / hotspot.
-        if ext.get("answer_map"):
-            order = [ext["answer_map"][k] for k in sorted(ext["answer_map"].keys())]
-            st.success("**Correct order (AI):** " + " → ".join(order))
+    elif is_visual and ext:
+        if ext.get("answer"):
+            st.success("**Correct order (AI):** " + " → ".join(ext["answer"]))
         elif ext.get("dropdowns"):
             st.success("**Correct selections (AI):** "
                        + " · ".join(f"{d.get('label')} → {d.get('correct')}"
@@ -366,8 +398,7 @@ def render_reading_body(question, idx, show_images_in_body=True):
         elif shown:
             st.info("🗝️ Answer is shown in the exhibit above.")
     elif is_visual and shown:
-        st.info("🗝️ This is a hotspot/drag-drop/lab question — the answer is in the "
-                "exhibit above.")
+        st.info("🗝️ The answer is shown in the exhibit above.")
     else:
         st.info("No explicit answer key — see the community discussion below.")
 

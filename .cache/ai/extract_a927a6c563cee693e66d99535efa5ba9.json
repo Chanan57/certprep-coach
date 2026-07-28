@@ -1,0 +1,20 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Summary1 has a sensitivity label applied.",
+    "Summary2 has a sensitivity label applied.",
+    "Summary3 has a sensitivity label applied.",
+    "No",
+    "Yes"
+  ],
+  "answer": [
+    "No",
+    "Yes",
+    "No"
+  ],
+  "notes": "Summary1 is based on File1 (None) and File3 (Label2), so it has no sensitivity label. Summary2 is based on File2 (Label1), which has a sensitivity label. Summary3 includes File1 (None), File2 (Label1), and File3 (Label2), but since it includes File1, it does not have a sensitivity label.",
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "ok": true
+}

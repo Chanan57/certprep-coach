@@ -1,0 +1,18 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Private endpoints",
+    "Service endpoints",
+    "Static IP restrictions",
+    "Virtual network integration"
+  ],
+  "answer": [
+    "Private endpoints",
+    "Virtual network integration"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

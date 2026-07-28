@@ -1,0 +1,26 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "The Azure Diagnostics extension",
+    "Azure Network Watcher",
+    "Data connectors",
+    "Workflow automation",
+    "The Azure Diagnostics extension",
+    "Azure Storage Analytics",
+    "Data connectors",
+    "The Log Analytics agent",
+    "Workflow automation"
+  ],
+  "answer": [
+    "Data connectors",
+    "The Log Analytics agent"
+  ],
+  "answer_map": {
+    "For WAF": "Data connectors",
+    "For the virtual machines": "The Log Analytics agent"
+  },
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

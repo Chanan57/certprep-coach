@@ -1,0 +1,16 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "4",
+    "1"
+  ],
+  "answer": [
+    "4",
+    "1"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "User1 (Site owner) can access all files (4), while User2 (Site visitor) can access only 1 file.",
+  "ok": true
+}

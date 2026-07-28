@@ -1,0 +1,22 @@
+{
+  "type": "DRAG_DROP",
+  "items": [
+    "Create a sensitivity label.",
+    "Wait 24 hours and then turn on the policy.",
+    "Create a sensitive info type.",
+    "Create a retention label.",
+    "Create an auto-labeling policy."
+  ],
+  "answer": [
+    "Create a sensitivity label.",
+    "Create a sensitive info type.",
+    "Create a retention label.",
+    "Create an auto-labeling policy.",
+    "Wait 24 hours and then turn on the policy."
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

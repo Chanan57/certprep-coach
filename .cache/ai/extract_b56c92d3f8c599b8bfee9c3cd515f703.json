@@ -1,0 +1,23 @@
+{
+  "type": "DRAG_DROP",
+  "items": [
+    "Azure AD Identity Protection",
+    "Azure AD Password Protection",
+    "Microsoft Defender for Cloud",
+    "An account lockout policy in AD DS",
+    "Microsoft Defender for Endpoint",
+    "Microsoft Defender for Identity"
+  ],
+  "answer": [
+    "Azure AD Identity Protection",
+    "Microsoft Defender for Identity"
+  ],
+  "answer_map": {
+    "For Azure AD-targeted threats": "Azure AD Identity Protection",
+    "For AD DS-targeted threats": "Microsoft Defender for Identity"
+  },
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

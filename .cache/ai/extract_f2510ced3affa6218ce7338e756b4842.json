@@ -1,0 +1,20 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "The Microsoft Purview extension",
+    "The Microsoft Defender Browser Protection extension",
+    "The Microsoft Purview Information Protection client"
+  ],
+  "answer": [
+    "The Microsoft Purview Information Protection client",
+    "The Microsoft Purview extension"
+  ],
+  "answer_map": {
+    "Device1": "The Microsoft Purview Information Protection client",
+    "Device2": "The Microsoft Purview extension"
+  },
+  "dropdowns": [],
+  "correct_answer": "",
+  "notes": "",
+  "ok": true
+}

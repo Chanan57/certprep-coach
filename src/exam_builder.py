@@ -1,27 +1,17 @@
-"""
-Exam-mode builder for CertPrep Coach.
-
-Two modes:
-  * "full"  -> every question in one sitting (kept in original order).
-  * "sets"  -> split the bank into ~SET_SIZE (default 60) question sets, each
-               guaranteed to contain at least MIN_CASE_STUDIES case-study
-               question(s) and MIN_YESNO yes/no question(s) where the bank
-               allows.
-
-Case-study questions that share a scenario (same case_id) are kept together in
-the same set and in order, mirroring the real exam.
-"""
+"""Exam-mode builder: full exam, ~60-question sets, and a quick 10-question test."""
 
 import math
+import random
 
 
 SET_SIZE = 60
-MIN_CASE_STUDIES = 1     # per set (case-study *questions*)
-MIN_YESNO = 2            # per set
+MIN_CASE_STUDIES = 1
+MIN_YESNO = 2
+
+QUICK_SIZE = 10   # default number of questions in a quick test
 
 
 def is_yesno(q):
-    """A hotspot question whose stem uses the Yes/No answer format."""
     if q.get("type") != "HOTSPOT":
         return False
     stem = (q.get("question_text") or "").lower()
@@ -30,11 +20,6 @@ def is_yesno(q):
 
 
 def _case_blocks(questions):
-    """
-    Group questions into ordered blocks. Case-study questions sharing a
-    case_id form one block (kept together); every other question is its own
-    single-item block.
-    """
     blocks = []
     case_map = {}
     for q in questions:
@@ -50,77 +35,110 @@ def _case_blocks(questions):
 
 
 def build_full(questions):
-    """Return a single set containing all questions (original order)."""
     return [list(questions)]
 
 
 def build_sets(questions, set_size=SET_SIZE,
                min_case=MIN_CASE_STUDIES, min_yesno=MIN_YESNO):
-    """
-    Partition questions into sets of ~set_size, each containing at least
-    `min_case` case-study questions and `min_yesno` yes/no questions where
-    the overall bank permits. Returns a list of lists.
-    """
     if not questions:
         return []
 
     total = len(questions)
     num_sets = max(1, math.ceil(total / set_size))
 
-    # Categorise blocks.
     blocks = _case_blocks(questions)
     case_blocks = [b for b in blocks if b[0] == "case"]
     yesno_singles = [b for b in blocks if b[0] == "single" and is_yesno(b[2][0])]
     other_singles = [b for b in blocks if b[0] == "single" and not is_yesno(b[2][0])]
 
-    # Guarantee each set can hold >= min_case case studies: if there aren't
-    # enough case-study blocks for that many sets, reduce the set count so long
-    # as the resulting sets don't get unreasonably large (<= 1.6x set_size).
     if case_blocks and min_case > 0:
         max_sets_for_cases = max(1, len(case_blocks) // min_case)
         if max_sets_for_cases < num_sets and total / max_sets_for_cases <= set_size * 1.6:
             num_sets = max_sets_for_cases
 
-    # Initialise empty sets.
     sets = [[] for _ in range(num_sets)]
 
     def sizes():
         return [len(s) for s in sets]
 
-    def smallest_set_index():
+    def smallest():
         s = sizes()
         return s.index(min(s))
 
-    # 1) Distribute case-study blocks round-robin (whole block per set).
     ci = 0
     for _kind, _cid, qs in case_blocks:
-        target = ci % num_sets
-        sets[target].extend(qs)
+        sets[ci % num_sets].extend(qs)
         ci += 1
 
-    # 2) Distribute yes/no questions so each set gets at least min_yesno.
     yn_queue = [b[2][0] for b in yesno_singles]
     yi = 0
-    # First pass: guarantee minimum where possible.
     for s in sets:
         got = sum(1 for q in s if is_yesno(q))
         while got < min_yesno and yi < len(yn_queue):
             s.append(yn_queue[yi]); yi += 1; got += 1
-    # Remaining yes/no go to smallest sets.
     while yi < len(yn_queue):
-        sets[smallest_set_index()].append(yn_queue[yi]); yi += 1
+        sets[smallest()].append(yn_queue[yi]); yi += 1
 
-    # 3) Distribute the rest, always filling the smallest set (balances sizes).
     for _kind, _cid, qs in other_singles:
-        sets[smallest_set_index()].extend(qs)
+        sets[smallest()].extend(qs)
 
-    # Drop any empty trailing sets (can happen with tiny banks).
-    sets = [s for s in sets if s]
-    return sets
+    return [s for s in sets if s]
+
+
+def build_quick_test(questions, size=QUICK_SIZE, seed=None):
+    """
+    Build a short quick-test set (default 10 questions) that samples across as
+    many DIFFERENT question types as the bank offers.
+
+    Strategy:
+      1. Group questions by type (SINGLE, MULTI, HOTSPOT, DRAG DROP, SIMULATION).
+      2. Round-robin one question from each available type until `size` is
+         reached, so the mix is as varied as possible.
+      3. If the bank has fewer than `size` questions, return them all.
+
+    Case-study questions are treated as standalone here (a quick test is meant
+    to be fast, not scenario-heavy), but they can still be picked to add variety.
+
+    `seed` makes the selection reproducible for tests; leave None for random.
+    """
+    if not questions:
+        return []
+
+    rng = random.Random(seed)
+
+    # Bucket by type, shuffled within each bucket.
+    buckets = {}
+    for q in questions:
+        buckets.setdefault(q.get("type", "SINGLE"), []).append(q)
+    for qs in buckets.values():
+        rng.shuffle(qs)
+
+    # Preferred type order for a nice spread; unknown types appended after.
+    preferred = ["SINGLE", "MULTI", "HOTSPOT", "DRAG DROP", "SIMULATION"]
+    type_order = [t for t in preferred if t in buckets]
+    type_order += [t for t in buckets if t not in preferred]
+
+    selected = []
+    seen = set()
+
+    # Round-robin across types.
+    while len(selected) < size and any(buckets[t] for t in type_order):
+        for t in type_order:
+            if not buckets[t]:
+                continue
+            q = buckets[t].pop()
+            key = id(q)
+            if key in seen:
+                continue
+            selected.append(q)
+            seen.add(key)
+            if len(selected) >= size:
+                break
+
+    return selected[:size]
 
 
 def set_summary(one_set):
-    """Return counts describing a single set for display."""
     cases = {}
     yesno = 0
     for q in one_set:
@@ -129,9 +147,13 @@ def set_summary(one_set):
             cases[q["case_id"]] += 1
         if is_yesno(q):
             yesno += 1
-    return {
-        "total": len(one_set),
-        "case_study_questions": sum(cases.values()),
-        "case_studies": len(cases),
-        "yesno": yesno,
-    }
+    return {"total": len(one_set), "case_study_questions": sum(cases.values()),
+            "case_studies": len(cases), "yesno": yesno}
+
+
+def type_breakdown(one_set):
+    """Return {type: count} for a set — handy for showing the quick-test mix."""
+    out = {}
+    for q in one_set:
+        out[q.get("type", "SINGLE")] = out.get(q.get("type", "SINGLE"), 0) + 1
+    return out

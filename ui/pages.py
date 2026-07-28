@@ -113,7 +113,7 @@ def _load_exam_with_progress(exam, force):
 
 
 # ---------------------------------------------------------------------------
-# Mode chooser: Practice/Reading + Full/Sets + Resume/Fresh
+# Mode chooser: Practice/Reading + Full/Sets/Quick + Resume/Fresh
 # ---------------------------------------------------------------------------
 
 def show_mode_page():
@@ -132,16 +132,18 @@ def show_mode_page():
         key="mode_app", label_visibility="collapsed")
     is_reading = app_mode.startswith("Reading")
 
-    # --- Full vs Sets ---
+    # --- Coverage: Full / Sets / Quick test ---
     st.markdown("### 🧩 Coverage")
     coverage = st.radio(
         "How much at once?",
         ["Full exam (all questions)",
-         "60-question sets (each with case studies + Yes/No)"],
+         "60-question sets (each with case studies + Yes/No)",
+         "⚡ Quick test (10 mixed-type questions)"],
         key="mode_choice", label_visibility="collapsed")
 
     chosen_set_idx = 0
     sets = []
+
     if coverage.startswith("60"):
         sets = eb.build_sets(all_q)
         st.session_state.exam_sets = sets
@@ -156,16 +158,36 @@ def show_mode_page():
             "Which set?", options=list(range(len(sets))),
             format_func=lambda i: f"Set {i+1} ({len(sets[i])} questions)", key="mode_set")
 
+    elif coverage.startswith("⚡"):
+        # Build the quick test now so we can preview its mix.
+        qt = eb.build_quick_test(all_q, size=10)
+        st.session_state.exam_sets = [qt]
+        mix = eb.type_breakdown(qt)
+        mix_str = " · ".join(f"{TYPE_LABELS.get(t, t)} × {c}" for t, c in mix.items())
+        st.caption(f"⚡ Quick test: **{len(qt)} questions** — {mix_str}")
+        cqa, _cqb = st.columns([1, 3])
+        with cqa:
+            if st.button("🔀 Reshuffle quick test", key="quick_reshuffle"):
+                st.session_state.exam_sets = [eb.build_quick_test(all_q, size=10)]
+                st.rerun()
+
     # --- Timing (practice only) ---
     timed = False
     limit = 120
     if not is_reading:
         st.markdown("### ⏱️ Timing")
         timed = st.checkbox("Timed mode", value=False, key="mode_timed")
-        limit = st.number_input("Time limit (minutes)", 1, 300, 120, 5,
+        default_limit = 15 if coverage.startswith("⚡") else 120
+        limit = st.number_input("Time limit (minutes)", 1, 300, default_limit, 5,
                                 disabled=not timed, key="mode_limit")
 
-    exam_mode = "full" if coverage.startswith("Full") else f"set{chosen_set_idx + 1}"
+    # --- Resolve the exam_mode key (used for saved-progress files) ---
+    if coverage.startswith("Full"):
+        exam_mode = "full"
+    elif coverage.startswith("⚡"):
+        exam_mode = "quick"
+    else:
+        exam_mode = f"set{chosen_set_idx + 1}"
 
     st.markdown("---")
     # Resume / fresh (practice only; reading has no saved state)
@@ -197,6 +219,9 @@ def show_mode_page():
 def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
     if exam_mode == "full":
         questions = list(st.session_state.all_questions)
+    elif exam_mode == "quick":
+        # Quick test was pre-built and stored in exam_sets[0].
+        questions = list(st.session_state.exam_sets[0]) if st.session_state.exam_sets else []
     else:
         questions = list(sets[set_idx])
 

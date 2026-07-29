@@ -1,0 +1,46 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    },
+    {
+      "index": 2,
+      "role": "question"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "For WAF:",
+      "options": [
+        "The Azure Diagnostics extension",
+        "Azure Network Watcher",
+        "Data connectors",
+        "Workflow automation"
+      ],
+      "correct": "The Azure Diagnostics extension"
+    },
+    {
+      "label": "For the virtual machines:",
+      "options": [
+        "The Azure Diagnostics extension",
+        "Azure Storage Analytics",
+        "Data connectors",
+        "The Log Analytics agent",
+        "Workflow automation"
+      ],
+      "correct": "The Log Analytics agent"
+    }
+  ],
+  "explanation": "The Azure Diagnostics extension and the Log Analytics agent are essential for monitoring and managing security in Azure App Services and virtual machines.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_8dd750fe6240.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_c260b7626af9.png": "question"
+  },
+  "ok": true
+}

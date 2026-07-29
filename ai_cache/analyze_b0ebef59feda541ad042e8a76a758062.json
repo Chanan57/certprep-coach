@@ -1,0 +1,37 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Azure AD B2B",
+    "Azure AD B2C",
+    "Azure Lighthouse",
+    "Azure Arc",
+    "Azure Stack Edge",
+    "Azure Stack Hub"
+  ],
+  "answer": [
+    "Azure Lighthouse",
+    "Azure Arc"
+  ],
+  "answer_map": {
+    "1": "Azure Lighthouse",
+    "2": "Azure Arc"
+  },
+  "explanation": "Azure Lighthouse is used for centralizing subscription management, while Azure Arc enables management of on-premises resources.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_864da590b52c.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_5864a5fff080.png": "answer_key"
+  },
+  "ok": true
+}

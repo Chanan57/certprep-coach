@@ -1,0 +1,39 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Business continuity",
+    "Data classification",
+    "Just-in-time (JIT) access",
+    "Segmenting access"
+  ],
+  "answer": [
+    "Just-in-time (JIT) access",
+    "Segmenting access",
+    "Data classification",
+    "Business continuity"
+  ],
+  "answer_map": {
+    "1": "Just-in-time (JIT) access",
+    "2": "Segmenting access",
+    "3": "Data classification",
+    "4": "Business continuity"
+  },
+  "explanation": "Implementing Just-in-time access and segmenting access minimizes the risk of lateral movement by ensuring administrative privileges are granted only when necessary.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f9e1a437bbe8.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_092ff2635686.png": "answer_key"
+  },
+  "ok": true
+}

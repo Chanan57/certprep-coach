@@ -1,0 +1,24 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "correct_answer": "A, C",
+  "explanation": "Azure Data Lake Storage Gen2 and Azure Storage blob containers support authentication using Azure Active Directory, allowing for secure access management.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_d0ac2dbb0f32.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_b76df5e39987.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,34 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Data loss prevention (DLP) policies",
+    "The Recycle Bin",
+    "Versioning"
+  ],
+  "answer": [
+    "The Recycle Bin",
+    "Versioning"
+  ],
+  "answer_map": {
+    "1": "The Recycle Bin",
+    "2": "Versioning"
+  },
+  "correct_answer": "",
+  "explanation": "Using the Recycle Bin and Versioning helps mitigate risks associated with file attacks by providing recovery options and maintaining file integrity.",
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_796ae76d86d7.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_2627ba5fefc3.png": "answer_key"
+  },
+  "ok": true
+}

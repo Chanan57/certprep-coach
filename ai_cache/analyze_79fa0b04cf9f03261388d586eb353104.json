@@ -1,0 +1,38 @@
+{
+  "type": "MULTI",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Azure AD application",
+    "Azure AD Application Proxy",
+    "Azure Application Gateway",
+    "A managed identity in Azure AD",
+    "Microsoft Defender for App",
+    "An access package in Identity Governance",
+    "An access policy in Microsoft Defender for Cloud Apps",
+    "An access review in Identity Governance",
+    "Azure AD Conditional Access App Control",
+    "An OAuth app policy in Microsoft Defender for Cloud Apps"
+  ],
+  "answer": [
+    "Azure AD application",
+    "An access package in Identity Governance"
+  ],
+  "explanation": "Enabling Azure AD application and implementing an access package in Identity Governance are essential controls to protect against ransomware and ensure effective recovery using Azure Backup.",
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f69513f9a199.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_387e8907c99a.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,37 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "A Microsoft Sentinel workspace",
+    "An Azure Automation account",
+    "Microsoft Defender for Servers Plan 2",
+    "The Azure Connected Machine agent",
+    "The Azure Monitor Agent",
+    "The Log Analytics agent"
+  ],
+  "answer": [
+    "Microsoft Defender for Servers Plan 2",
+    "The Azure Connected Machine agent"
+  ],
+  "answer_map": {
+    "Azure resource": "Microsoft Defender for Servers Plan 2",
+    "Agent on the servers": "The Azure Connected Machine agent"
+  },
+  "explanation": "The recommended resources align with best practices for enterprise-scale landing zones in Azure, ensuring security and management capabilities.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_15798b2719d5.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f2809cb3f56d.png": "answer_key"
+  },
+  "ok": true
+}

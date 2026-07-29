@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To centralize subscription management:",
+      "options": [
+        "Microsoft Entra B2B",
+        "Microsoft Entra External ID",
+        "Azure Lighthouse"
+      ],
+      "correct": "Microsoft Entra External ID"
+    },
+    {
+      "label": "To enable the management of on-premises resources:",
+      "options": [
+        "Azure Arc",
+        "Azure Stack Edge",
+        "Azure Stack Hub"
+      ],
+      "correct": "Azure Arc"
+    }
+  ],
+  "correct_answer": "Microsoft Entra External ID, Azure Arc",
+  "explanation": "Microsoft Entra External ID is used for centralizing subscription management, while Azure Arc enables management of on-premises resources.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_7568288c7c8f.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_39138113222a.png": "answer_key"
+  },
+  "ok": true
+}

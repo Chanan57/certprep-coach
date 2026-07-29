@@ -1,0 +1,33 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "answer_key"
+    },
+    {
+      "index": 2,
+      "role": "question"
+    }
+  ],
+  "items": [
+    "Onboard the servers to Defender for Cloud.",
+    "Configure Microsoft Sentinel playbooks."
+  ],
+  "answer": [
+    "Onboard the servers to Defender for Cloud.",
+    "Configure Microsoft Sentinel playbooks."
+  ],
+  "answer_map": {
+    "1": "Onboard the servers to Defender for Cloud.",
+    "2": "Configure Microsoft Sentinel playbooks."
+  },
+  "explanation": "Before users can access corporate applications again, the endpoints must be onboarded to Defender for Cloud and Microsoft Sentinel playbooks must be configured to ensure security compliance.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_02bc4fa8260b.png": "answer_key",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f15b3ca455cf.png": "question"
+  },
+  "ok": true
+}

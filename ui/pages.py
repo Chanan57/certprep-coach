@@ -40,29 +40,51 @@ from ui.report import render_report
 def _ai_cfg():
     if not HAS_AI:
         return None
-    cfg = ai.get_config()
-    return cfg if ai.is_configured(cfg) else None
+    return ai.get_config()
+
+
+def _get_analysis(question):
+    """Holistic AI analysis for this question, cached in session (shared with
+    ui.questions via the same '_ai_analysis' key)."""
+    if not HAS_AI:
+        return None
+    cache = st.session_state.setdefault("_ai_analysis", {})
+    k = qid(question)
+    if k in cache:
+        return cache[k]
+    if not any(os.path.exists(p) for p in question.get("images", [])):
+        cache[k] = None
+        return None
+    res = ai.analyze_question(question, _ai_cfg())
+    cache[k] = res if res.get("ok") else None
+    return cache[k]
 
 
 def _categorized_images(question):
-    """Return (reference_images, answer_images). AI classification keeps
-    answer-area images out of the tables/exhibits panel. Cached per question."""
+    """
+    Return (reference_images, answer_images) for a case study.
+
+    Uses the holistic AI analysis roles: 'answer_key' images are the answer
+    (hidden in practice); everything else is reference (tables/exhibits/question).
+    Falls back to a positional rule when there's no AI analysis: for 2+ images
+    the LAST one is treated as the answer key.
+    """
     imgs = [p for p in question.get("images", []) if os.path.exists(p)]
     if not imgs:
         return [], []
-    cfg = _ai_cfg()
-    if not cfg:
-        return imgs, []
-    cache = st.session_state.setdefault("_img_cats", {})
-    k = qid(question)
-    if k not in cache:
-        cache[k] = ai.categorize_images(question, cfg)
-    buckets = cache[k]
-    reference = buckets.get("table", []) + buckets.get("exhibit", [])
-    answer = buckets.get("answer_area", [])
-    known = set(reference) | set(answer) | set(buckets.get("other", []))
-    reference += [p for p in imgs if p not in known]
-    return reference, answer
+
+    analysis = _get_analysis(question)
+    roles = (analysis or {}).get("roles") if analysis else None
+    if roles:
+        answer = [p for p in imgs if roles.get(p) == "answer_key"]
+        reference = [p for p in imgs if p not in answer]
+        if reference:                     # never hide everything
+            return reference, answer
+
+    # Fallback: positional rule.
+    if len(imgs) >= 2:
+        return imgs[:-1], imgs[-1:]
+    return imgs, []
 
 
 # ---------------------------------------------------------------------------
@@ -242,28 +264,25 @@ def show_mode_page():
 
 
 def _prewarm_ai(questions):
-    """Pre-process all questions with AI once, up front (progress bar), so
-    practice/reading is instant. Classifies images and extracts drag-drop /
-    hotspot answers. Cached on disk + session, so it only runs once per set."""
-    cfg = _ai_cfg()
-    if not cfg:
+    """Pre-analyse all image questions once with the holistic analyzer so
+    practice/reading is instant. Cached on disk + session; runs once per set."""
+    if not HAS_AI:
         return
-    img_cache = st.session_state.setdefault("_img_cats", {})
-    ext_cache = st.session_state.setdefault("_ai_ext", {})
-    targets = [q for q in questions if any(os.path.exists(p) for p in q.get("images", []))]
+    analysis_cache = st.session_state.setdefault("_ai_analysis", {})
+    targets = [q for q in questions
+               if any(os.path.exists(p) for p in q.get("images", []))]
     if not targets:
         return
+
+    cfg = _ai_cfg()
     bar = st.progress(0.0)
     status = st.empty()
     status.caption("🤖 Preparing questions with AI (one-time, cached)...")
     for i, q in enumerate(targets):
         k = qid(q)
-        if k not in img_cache:
-            img_cache[k] = ai.categorize_images(q, cfg)
-        needs = (q.get("type") in ("DRAG DROP", "HOTSPOT")
-                 or (q.get("type") in ("SINGLE", "MULTI") and not q.get("correct_answer")))
-        if needs and k not in ext_cache:
-            ext_cache[k] = ai.extract_from_images(q, cfg)
+        if k not in analysis_cache:
+            res = ai.analyze_question(q, cfg)
+            analysis_cache[k] = res if res.get("ok") else None
         bar.progress((i + 1) / len(targets))
     status.empty()
     bar.empty()
@@ -388,8 +407,7 @@ def _render_case_study(q, idx, reading):
             if view == "__question__":
                 st.caption("Here is a question that is tied to this case study.")
                 render_stem(q)
-                # Answer-area image: shown ONLY in reading mode. Hidden entirely
-                # in practice mode so it never gives the answer away.
+                # Answer image shown ONLY in reading mode.
                 if answer_imgs and reading:
                     with st.expander("🗝️ Answer area", expanded=True):
                         for p in answer_imgs:

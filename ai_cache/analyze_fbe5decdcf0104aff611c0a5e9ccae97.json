@@ -1,0 +1,59 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    },
+    {
+      "index": 2,
+      "role": "exhibit"
+    },
+    {
+      "index": 3,
+      "role": "question"
+    },
+    {
+      "index": 4,
+      "role": "answer_key"
+    }
+  ],
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [
+    {
+      "label": "To enable MUA for Vault1, a resource guard must be deployed to Sub1.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "Yes"
+    },
+    {
+      "label": "A user in Group2 must approve changes made by a user in Group1 to the backup policies of Vault1.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "No"
+    },
+    {
+      "label": "A user in Group1 that activates Assignment1 can disable soft delete for the backups of Vault1, without the approval of a user in Group2.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "No"
+    }
+  ],
+  "correct_answer": "",
+  "explanation": "The statements assess the requirements for managing access and approvals related to Azure Backup and resource management.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_84b95cca6965.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_f6aca2a67904.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_5abe2b9077e2.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_c277765892af.png": "answer_key"
+  },
+  "ok": true
+}

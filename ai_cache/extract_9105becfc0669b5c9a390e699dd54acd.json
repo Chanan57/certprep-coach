@@ -1,0 +1,24 @@
+{
+  "type": "DRAG_DROP",
+  "items": [
+    "Establish ransomware recovery readiness.",
+    "Enable additional protection and detection controls.",
+    "Establish visibility.",
+    "Implement disaster recovery.",
+    "Enable automation."
+  ],
+  "answer": [
+    "Establish ransomware recovery readiness.",
+    "Enable additional protection and detection controls.",
+    "Establish visibility."
+  ],
+  "answer_map": {
+    "slot1": "Establish ransomware recovery readiness.",
+    "slot2": "Enable additional protection and detection controls.",
+    "slot3": "Establish visibility."
+  },
+  "dropdowns": [],
+  "correct_answer": "Establish ransomware recovery readiness, Enable additional protection and detection controls, Establish visibility.",
+  "notes": "",
+  "ok": true
+}

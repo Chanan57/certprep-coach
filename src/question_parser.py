@@ -18,25 +18,14 @@ QUESTION_LEAD_RE = re.compile("|".join(QUESTION_LEADS), re.IGNORECASE)
 
 
 def strip_examtopics_noise(text):
-    """
-    Remove ExamTopics page headers/footers WITHOUT crossing into question text.
-
-    IMPORTANT: every rule here is LINE-SCOPED (anchored to a single line). We do
-    NOT use a greedy 'datetime ... examtopics.com' span, because some exports
-    (e.g. SC-100) put the datetime at the TOP of a page and the URL at the
-    BOTTOM — a greedy match would swallow the whole page's questions in between.
-    """
-    # Datetime stamp line: "5/6/25, 8:31 AM"
+    """Line-scoped removal of ExamTopics headers/footers — never crosses into
+    question text (fixes SC-100-style layouts with the datetime at page top)."""
     text = re.sub(r"(?m)^\s*\d{1,2}/\d{1,2}/\d{2,4},\s*\d{1,2}:\d{2}\s*[AP]M\s*$",
                   " ", text)
-    # Title line: "... Free Actual Q&As, Page N | ExamTopics"
     text = re.sub(r"(?im)^.*Free Actual Q&As.*ExamTopics.*$", " ", text)
-    # URL line (optionally followed by a page fraction like 9/230)
     text = re.sub(r"(?im)^\s*https?://\S*examtopics\.com\S*(?:\s+\d{1,4}/\d{1,4})?\s*$",
                   " ", text)
-    # A bare page fraction on its own line: "9/230"
     text = re.sub(r"(?m)^\s*\d{1,4}/\d{2,4}\s*$", " ", text)
-    # Any leftover inline URL fragment (rare).
     text = re.sub(r"https?://\S*examtopics\.com\S*", " ", text, flags=re.IGNORECASE)
     return text
 
@@ -124,7 +113,8 @@ def scenario_key(scenario):
     return hashlib.md5(norm.encode("utf-8")).hexdigest()[:12]
 
 
-def _images_from_block(block, image_map):
+def _images_from_block_inline(block, image_map):
+    """New format: images bound by inline [[[IMG:hash]]] markers in the block."""
     if not image_map:
         return []
     paths = []
@@ -135,12 +125,33 @@ def _images_from_block(block, image_map):
     return paths
 
 
-def parse_questions(raw_text, image_map=None):
-    if image_map is None:
-        image_map = {}
-    # Ignore a legacy {page:int -> [paths]} dict (old callers/tests).
-    if image_map and all(isinstance(k, int) for k in image_map.keys()):
-        image_map = {}
+def _images_from_block_pages(block, page_images):
+    """Legacy fallback: images bound by [[[PAGE n]]] markers in the block."""
+    if not page_images:
+        return []
+    paths = []
+    for pg in PAGE_MARKER_RE.findall(block):
+        for path in page_images.get(int(pg), []):
+            if path not in paths:
+                paths.append(path)
+    return paths
+
+
+def parse_questions(raw_text, image_data=None):
+    """
+    image_data may be EITHER:
+      - {hash: path}        (new pdf_reader — bound via inline [[[IMG:hash]]])
+      - {page:int: [paths]} (legacy pdf_reader — bound via [[[PAGE n]]])
+    Both are supported so images attach regardless of pdf_reader version.
+    """
+    if image_data is None:
+        image_data = {}
+
+    legacy_pages = bool(image_data) and all(isinstance(k, int) for k in image_data.keys())
+    inline_map = {} if legacy_pages else image_data
+    page_map = image_data if legacy_pages else {}
+    # Track which images we've already handed out so none appear twice.
+    used = set()
 
     raw_text = strip_examtopics_noise(raw_text)
     text = clean_text(raw_text)
@@ -149,6 +160,27 @@ def parse_questions(raw_text, image_map=None):
     matches = list(header_re.finditer(text))
     parsed = []
 
+    # For the legacy page format, precompute the pages each question spans:
+    # the page active AT the header, plus any page markers before the next header.
+    page_marks = [(m.start(), int(m.group(1))) for m in PAGE_MARKER_RE.finditer(text)]
+
+    def pages_for(qstart, qend):
+        pages = []
+        # page active at the header = last page marker at/before qstart
+        active = None
+        for pos, pg in page_marks:
+            if pos <= qstart:
+                active = pg
+            else:
+                break
+        if active is not None:
+            pages.append(active)
+        # any page markers inside the block (question spans pages)
+        for pos, pg in page_marks:
+            if qstart < pos < qend and pg not in pages:
+                pages.append(pg)
+        return pages
+
     for i, match in enumerate(matches):
         start = match.start()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
@@ -156,14 +188,23 @@ def parse_questions(raw_text, image_map=None):
         topic_num = match.group(1)
         q_num = match.group(2)
 
-        images = _images_from_block(block, image_map)
+        # Attach images: inline markers first, else legacy page markers.
+        images = _images_from_block_inline(block, inline_map)
+        if not images and page_map:
+            for pg in pages_for(start, end):
+                for p in page_map.get(pg, []):
+                    if p not in images:
+                        images.append(p)
+        # De-dupe across questions.
+        images = [p for p in images if p not in used]
+        for p in images:
+            used.add(p)
 
         block_clean = PAGE_MARKER_RE.sub(" ", block)
         block_clean = IMG_MARKER_RE.sub(" ", block_clean)
         block_clean = header_re.sub(" ", block_clean, count=1).strip()
         block_clean = re.sub(r"^\s*QUESTION\s*NO:?\s*\d+", " ", block_clean,
                              flags=re.IGNORECASE).strip()
-        # Remove a leading "Question Set N" label if present (SC-100 style).
         block_clean = re.sub(r"^\s*Question\s*Set\s*\d+", " ", block_clean,
                              flags=re.IGNORECASE).strip()
 

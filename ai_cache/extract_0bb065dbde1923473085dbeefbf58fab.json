@@ -1,0 +1,22 @@
+{
+  "type": "DRAG_DROP",
+  "items": [
+    "Dynamic application security testing (DAST)",
+    "Penetration testing",
+    "Smoke testing",
+    "Static application security testing (SAST)"
+  ],
+  "answer": [
+    "Static application security testing (SAST)",
+    "Dynamic application security testing (DAST)",
+    "Penetration testing"
+  ],
+  "answer_map": {
+    "Commit the code": "Static application security testing (SAST)",
+    "Build and test": "Dynamic application security testing (DAST)"
+  },
+  "dropdowns": [],
+  "correct_answer": "Static application security testing (SAST), Dynamic application security testing (DAST), Penetration testing",
+  "notes": "",
+  "ok": true
+}

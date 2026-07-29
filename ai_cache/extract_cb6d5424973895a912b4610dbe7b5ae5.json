@@ -1,0 +1,23 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Add the Defender for Endpoint onboarding script to the virtual machine template.",
+    "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO).",
+    "Onboard the virtual machine template to Defender for Endpoint.",
+    "Add the Defender for Endpoint onboarding script to the golden image.",
+    "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO).",
+    "Onboard the golden image to Defender for Endpoint."
+  ],
+  "answer": [
+    "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO).",
+    "Onboard the golden image to Defender for Endpoint."
+  ],
+  "answer_map": {
+    "For the VDI": "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO).",
+    "For Azure Virtual Desktop": "Onboard the golden image to Defender for Endpoint."
+  },
+  "dropdowns": [],
+  "correct_answer": "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO)., Onboard the golden image to Defender for Endpoint.",
+  "notes": "",
+  "ok": true
+}

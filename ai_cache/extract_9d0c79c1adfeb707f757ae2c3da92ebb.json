@@ -1,0 +1,24 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Discover and protect IoT devices.",
+    "Implement DevOps integration.",
+    "Explicitly validate trust for all access requests.",
+    "Classify and protect data.",
+    "Apply provisions for ransomware recovery readiness."
+  ],
+  "answer": [
+    "Explicitly validate trust for all access requests.",
+    "Apply provisions for ransomware recovery readiness.",
+    "Classify and protect data."
+  ],
+  "answer_map": {
+    "1": "Explicitly validate trust for all access requests.",
+    "2": "Apply provisions for ransomware recovery readiness.",
+    "3": "Classify and protect data."
+  },
+  "dropdowns": [],
+  "correct_answer": "Explicitly validate trust for all access requests, Apply provisions for ransomware recovery readiness, Classify and protect data.",
+  "notes": "",
+  "ok": true
+}

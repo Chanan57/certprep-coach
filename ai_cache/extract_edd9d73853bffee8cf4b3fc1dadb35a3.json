@@ -1,0 +1,23 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Azure Active Directory (Azure AD) Conditional Access policies",
+    "Azure Web Application Firewall (WAF)",
+    "network security groups (NSGs)",
+    "Microsoft Defender for Resource Manager",
+    "Microsoft Defender for servers",
+    "private endpoints"
+  ],
+  "answer": [
+    "network security groups (NSGs)",
+    "Microsoft Defender for servers"
+  ],
+  "answer_map": {
+    "Restrict unauthorized network access control": "network security groups (NSGs)",
+    "Enable endpoint protection control": "Microsoft Defender for servers"
+  },
+  "dropdowns": [],
+  "correct_answer": "network security groups (NSGs), Microsoft Defender for servers",
+  "notes": "",
+  "ok": true
+}

@@ -12,13 +12,17 @@ corporate-ca.cer
 Sample Inputs/
 *.pdf
 
-# ── Caches & runtime artefacts ─────────────────────────────────────────
+# ── Local caches & runtime artefacts ───────────────────────────────────
 .cache/
 .progress/
 certprep_img_*/
 *_images/
 certprep_results.csv
 certprep_score_report.csv
+
+# NOTE: ai_cache/ is intentionally NOT ignored — it is the SHARED team AI
+# cache (extracted question data, no secrets). Commit it so teammates get
+# AI-powered questions without needing their own API key.
 
 # ── Python ─────────────────────────────────────────────────────────────
 __pycache__/

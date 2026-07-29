@@ -1,0 +1,22 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Access policies",
+    "Access tiers",
+    "Encryption by using platform-managed keys",
+    "Immutable storage",
+    "A security PIN"
+  ],
+  "answer": [
+    "A security PIN",
+    "Immutable storage"
+  ],
+  "answer_map": {
+    "Azure Backup": "A security PIN",
+    "Azure Storage": "Immutable storage"
+  },
+  "dropdowns": [],
+  "correct_answer": "A security PIN for Azure Backup and Immutable storage for Azure Storage",
+  "notes": "The selected options align with best practices for securing CI/CD workflows.",
+  "ok": true
+}

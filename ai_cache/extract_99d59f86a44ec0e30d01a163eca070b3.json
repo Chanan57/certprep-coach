@@ -1,0 +1,23 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Microsoft Entra B2B",
+    "Microsoft Entra External ID",
+    "Azure Lighthouse",
+    "Azure Arc",
+    "Azure Stack Edge",
+    "Azure Stack Hub"
+  ],
+  "answer": [
+    "Microsoft Entra External ID",
+    "Azure Arc"
+  ],
+  "answer_map": {
+    "To centralize subscription management": "Microsoft Entra External ID",
+    "To enable the management of on-premises resources": "Azure Arc"
+  },
+  "dropdowns": [],
+  "correct_answer": "Microsoft Entra External ID, Azure Arc",
+  "notes": "",
+  "ok": true
+}

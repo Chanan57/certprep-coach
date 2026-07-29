@@ -1,0 +1,20 @@
+{
+  "type": "HOTSPOT",
+  "items": [
+    "Azure AD Password Protection",
+    "Extranet Smart Lockout (ESL)",
+    "Password hash synchronization"
+  ],
+  "answer": [
+    "Azure AD Password Protection",
+    "Password hash synchronization"
+  ],
+  "answer_map": {
+    "For brute force password attacks:": "Azure AD Password Protection",
+    "For leaked credentials:": "Password hash synchronization"
+  },
+  "dropdowns": [],
+  "correct_answer": "Azure AD Password Protection for brute force password attacks; Password hash synchronization for leaked credentials.",
+  "notes": "",
+  "ok": true
+}

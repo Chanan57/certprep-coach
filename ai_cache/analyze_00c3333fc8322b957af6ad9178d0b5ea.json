@@ -1,0 +1,36 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "A data loss prevention (DLP) policy",
+    "Azure Active Directory (Azure AD) Conditional Access",
+    "Azure Active Directory (Azure AD) Identity Protection",
+    "Microsoft Defender for Cloud",
+    "Microsoft Defender for Cloud Apps"
+  ],
+  "answer": [
+    "Azure Active Directory (Azure AD) Identity Protection",
+    "Microsoft Defender for Cloud Apps"
+  ],
+  "answer_map": {
+    "User accounts that were potentially compromised:": "Azure Active Directory (Azure AD) Identity Protection",
+    "Users performing bulk file downloads from SharePoint Online:": "Microsoft Defender for Cloud Apps"
+  },
+  "explanation": "To enforce ISO 27001:2013 standards and ensure automatic remediation of noncompliant resources, Azure Active Directory (AD) Identity Protection and Microsoft Defender for Cloud Apps are the appropriate components.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_f8631b2b48f1.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_912358dd6bc2.png": "answer_key"
+  },
+  "ok": true
+}

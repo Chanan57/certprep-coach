@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Azure Storage Blobs",
+      "options": [
+        "Explicitly validate trust for all access requests.",
+        "Apply provisions for ransomware recovery readiness.",
+        "Classify and protect data."
+      ],
+      "correct": "Classify and protect data."
+    },
+    {
+      "label": "Azure Files Shares",
+      "options": [
+        "Explicitly validate trust for all access requests.",
+        "Apply provisions for ransomware recovery readiness.",
+        "Classify and protect data."
+      ],
+      "correct": "Explicitly validate trust for all access requests."
+    }
+  ],
+  "explanation": "The Azure Storage Blobs require data classification for security, while Azure Files Shares need trust validation for SMB protocol access.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_110070f34671.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_863a5c8545bd.png": "answer_key"
+  },
+  "ok": true
+}

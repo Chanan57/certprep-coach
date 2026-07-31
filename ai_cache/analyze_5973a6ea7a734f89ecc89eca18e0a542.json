@@ -1,0 +1,38 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To increase the score for the Restrict unauthorized network access control, implement",
+      "options": [
+        "Azure Active Directory (Azure AD) Conditional Access policies",
+        "Azure Web Application Firewall (WAF)",
+        "network security groups (NSGs)"
+      ],
+      "correct": "network security groups (NSGs)"
+    },
+    {
+      "label": "To increase the score for the Enable endpoint protection control, implement",
+      "options": [
+        "Microsoft Defender for Resource Manager",
+        "Microsoft Defender for servers",
+        "private endpoints"
+      ],
+      "correct": "Microsoft Defender for servers"
+    }
+  ],
+  "explanation": "The correct options are based on the specific security measures needed for network access control and endpoint protection as indicated in the exhibit.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_a03404501ec0.png": "question"
+  },
+  "ok": true
+}

@@ -1,0 +1,37 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Azure Automation",
+    "Azure Bastion",
+    "Just-in-time (JIT) VM access",
+    "Any public IP addresses provided before the connection is established",
+    "AzureBastionSubnet",
+    "GatewaySubnet"
+  ],
+  "answer": [
+    "Azure Bastion",
+    "AzureBastionSubnet"
+  ],
+  "answer_map": {
+    "Manage NSG rules by using": "Azure Bastion",
+    "Only allow SSH connections to the jump servers from": "AzureBastionSubnet"
+  },
+  "explanation": "Using Azure Bastion allows secure access to the storage account from the specified static IP addresses, minimizing costs by avoiding additional infrastructure.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_2f89325f483d.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_45ea3e22d843.png": "answer_key"
+  },
+  "ok": true
+}

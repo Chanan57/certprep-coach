@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "other"
+    }
+  ],
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "explanation": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_453283e68cdd.png": "other"
+  },
+  "ok": true
+}

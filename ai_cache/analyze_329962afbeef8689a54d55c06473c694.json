@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    }
+  ],
+  "correct_answer": "No",
+  "explanation": "Access restrictions based solely on HTTP headers may not effectively ensure that web apps only allow access through the Front Door instance, as headers can be spoofed.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_6e365442ad26.png": "question"
+  },
+  "ok": true
+}

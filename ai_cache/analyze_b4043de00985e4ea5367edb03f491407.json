@@ -1,0 +1,47 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "For the inbound connections:",
+      "options": [
+        "Application security groups",
+        "Azure Firewall",
+        "Azure Web Application Firewall (WAF)",
+        "Microsoft Entra application proxy",
+        "Network security groups (NSGs)"
+      ],
+      "correct": "Azure Web Application Firewall (WAF)"
+    },
+    {
+      "label": "For the outbound connections:",
+      "options": [
+        "Application security groups",
+        "Azure Firewall",
+        "Azure Web Application Firewall (WAF)",
+        "Microsoft Entra application proxy",
+        "Network security groups (NSGs)"
+      ],
+      "correct": "Azure Firewall"
+    }
+  ],
+  "explanation": "The correct selections for inbound and outbound connections are based on the specific functionalities of Azure services.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_cfd6752d2a9f.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_2a7b13178f97.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,33 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Dynamic application security testing (DAST)",
+    "Penetration testing",
+    "Smoke testing",
+    "Static application security testing (SAST)"
+  ],
+  "answer": [
+    "Static application security testing (SAST)",
+    "Dynamic application security testing (DAST)",
+    "Penetration testing"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "explanation": "The correct sequence prioritizes static and dynamic testing to enhance security before penetration testing.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_72ab1fb5e61d.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_76b7a774baca.png": "answer_key"
+  },
+  "ok": true
+}

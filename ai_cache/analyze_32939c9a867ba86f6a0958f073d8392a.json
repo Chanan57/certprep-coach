@@ -1,0 +1,48 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    },
+    {
+      "index": 2,
+      "role": "question"
+    },
+    {
+      "index": 3,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To ensure that only VM1 can access DB1:",
+      "options": [
+        "A private endpoint",
+        "Azure Application Gateway",
+        "Azure Private Link"
+      ],
+      "correct": "A private endpoint"
+    },
+    {
+      "label": "To enforce network security restrictions for DB1:",
+      "options": [
+        "Azure Firewall rules",
+        "Network security groups (NSGs)",
+        "Virtual network rules"
+      ],
+      "correct": "Virtual network rules"
+    }
+  ],
+  "explanation": "Using a private endpoint ensures that only VM1 can access DB1, while virtual network rules enforce network security restrictions effectively.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_b02ab1ea195e.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_f362ed47f49d.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_ea3768d412d3.png": "answer_key"
+  },
+  "ok": true
+}

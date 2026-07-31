@@ -1,0 +1,42 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Azure Arc",
+    "Microsoft Defender for Cloud",
+    "Microsoft Defender for Cloud Apps",
+    "Microsoft Defender for Endpoint",
+    "Microsoft Defender for IoT",
+    "Azure Arc only",
+    "Microsoft Defender for Cloud and Azure Arc",
+    "Microsoft Defender for Cloud Apps only",
+    "Microsoft Defender for Cloud only",
+    "Microsoft Defender for Endpoint and Azure Arc",
+    "Microsoft Defender for Endpoint only"
+  ],
+  "answer": [
+    "Microsoft Defender for IoT",
+    "Microsoft Defender for Cloud and Azure Arc"
+  ],
+  "answer_map": {
+    "1": "Microsoft Defender for IoT",
+    "2": "Microsoft Defender for Cloud and Azure Arc"
+  },
+  "explanation": "Implementing Microsoft Defender for IoT and Microsoft Defender for Cloud and Azure Arc enhances security while minimizing latency for developers.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_59e30c129fde.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_e8c37feb2e36.png": "answer_key"
+  },
+  "ok": true
+}

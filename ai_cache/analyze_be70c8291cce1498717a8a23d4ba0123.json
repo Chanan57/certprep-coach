@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "other"
+    }
+  ],
+  "correct_answer": "No",
+  "explanation": "Enabling adaptive network hardening does not directly address the secure management ports controls, which require specific configurations to increase the score.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_942c19a34a4d.png": "other"
+  },
+  "ok": true
+}

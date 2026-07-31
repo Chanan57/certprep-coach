@@ -1,0 +1,55 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Windows 11 devices",
+      "options": [
+        "Microsoft 365 compliance center",
+        "Microsoft 365 Defender",
+        "Microsoft Defender for Cloud",
+        "Microsoft Sentinel"
+      ],
+      "correct": "Microsoft 365 Defender"
+    },
+    {
+      "label": "Azure virtual machines",
+      "options": [
+        "Microsoft 365 compliance center",
+        "Microsoft 365 Defender",
+        "Microsoft Defender for Cloud",
+        "Microsoft Sentinel"
+      ],
+      "correct": "Microsoft Defender for Cloud"
+    },
+    {
+      "label": "Azure Storage accounts",
+      "options": [
+        "Microsoft 365 compliance center",
+        "Microsoft 365 Defender",
+        "Microsoft Defender for Cloud",
+        "Microsoft Sentinel"
+      ],
+      "correct": "Microsoft Defender for Cloud"
+    }
+  ],
+  "correct_answer": "Microsoft Defender for Cloud",
+  "explanation": "To verify if Microsoft Defender for servers is installed on Windows VMs, you should check the compliance control for Microsoft Defender for Cloud.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_3d9fc81f2733.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_4464f4cfdf27.png": "answer_key"
+  },
+  "ok": true
+}

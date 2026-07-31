@@ -1,0 +1,36 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Build and test",
+    "Commit the code",
+    "Go to production",
+    "Operate",
+    "Plan and develop"
+  ],
+  "answer": [
+    "Build and test",
+    "Commit the code"
+  ],
+  "answer_map": {
+    "Infrastructure scanning": "Build and test",
+    "Static application security testing": "Commit the code"
+  },
+  "explanation": "The recommended actions for managing security incidents and analyzing logs involve building and testing infrastructure and committing code for security testing.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_ea2140115a62.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_15a443a98cf0.png": "answer_key"
+  },
+  "ok": true
+}

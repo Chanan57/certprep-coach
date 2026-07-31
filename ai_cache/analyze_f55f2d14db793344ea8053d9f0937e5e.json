@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "For the delegated management of users and groups, use:",
+      "options": [
+        "AD DS organizational units",
+        "Azure AD administrative units",
+        "Custom Azure AD roles"
+      ],
+      "correct": "Azure AD administrative units"
+    },
+    {
+      "label": "To ensure that you can perform leaked credential detection:",
+      "options": [
+        "Enable password has synchronization in the Azure AD Connect deployment",
+        "Enable Security defaults in the Azure AD tenant of Litware",
+        "Replace pass-through authentication with Active Directory Federation Services"
+      ],
+      "correct": "Enable password has synchronization in the Azure AD Connect deployment"
+    }
+  ],
+  "explanation": "The correct options are highlighted in the answer key, indicating the necessary configurations for user management and credential detection.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_b3f43629810c.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_eb8e8b26fcb5.png": "answer_key"
+  },
+  "ok": true
+}

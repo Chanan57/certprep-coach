@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Serverless SQL pool",
+      "options": [
+        "Azure Storage infrastructure encryption and Microsoft-managed keys",
+        "Transparent Data Encryption (TDE) and customer-managed keys",
+        "Transparent Data Encryption (TDE) and Microsoft-managed keys"
+      ],
+      "correct": "Transparent Data Encryption (TDE) and customer-managed keys"
+    },
+    {
+      "label": "Dedicated SQL pool",
+      "options": [
+        "Azure Storage infrastructure encryption and Microsoft-managed keys",
+        "Transparent Data Encryption (TDE) and customer-managed keys",
+        "Transparent Data Encryption (TDE) and Microsoft-managed keys"
+      ],
+      "correct": "Transparent Data Encryption (TDE) and customer-managed keys"
+    }
+  ],
+  "correct_answer": "Transparent Data Encryption (TDE) and customer-managed keys",
+  "explanation": "Customer-managed keys provide more granular control over encryption, allowing for specific configurations at the level of Azure Files shares and Blob Storage containers.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_d4b6ca36bd61.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_80c8f3a523ef.png": "answer_key"
+  },
+  "ok": true
+}

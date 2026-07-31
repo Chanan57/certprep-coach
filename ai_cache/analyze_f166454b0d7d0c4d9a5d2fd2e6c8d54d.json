@@ -1,0 +1,34 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Private endpoints",
+    "Service endpoints",
+    "Virtual network integration"
+  ],
+  "answer": [
+    "Virtual network integration",
+    "Private endpoints"
+  ],
+  "answer_map": {
+    "1": "Virtual network integration",
+    "2": "Private endpoints"
+  },
+  "explanation": "The correct options are based on the connectivity requirements for App Service web apps and virtual machines.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_249075d64736.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_491274712771.png": "answer_key"
+  },
+  "ok": true
+}

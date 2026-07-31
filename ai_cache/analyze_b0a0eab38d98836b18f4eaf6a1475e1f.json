@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "In Azure, deploy:",
+      "options": [
+        "Azure Monitor data collection endpoints",
+        "Azure Monitor data collection rules (DCRs)",
+        "Microsoft Defender for Cloud data collection settings"
+      ],
+      "correct": "Azure Monitor data collection rules (DCRs)"
+    },
+    {
+      "label": "On the virtual machines, install:",
+      "options": [
+        "The Azure Connected Machine agent for Azure Arc-enabled servers",
+        "The Log Analytics agent",
+        "The VM insights Map Dependency agent on Windows"
+      ],
+      "correct": "The Azure Connected Machine agent for Azure Arc-enabled servers"
+    }
+  ],
+  "explanation": "The selected options ensure that the helpdesk users at Fabrikam can reset passwords for specific users at Contoso while adhering to the principle of least privilege and minimizing administrative effort.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_929e90a587a4.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_98c9ce6ba371.png": "answer_key"
+  },
+  "ok": true
+}

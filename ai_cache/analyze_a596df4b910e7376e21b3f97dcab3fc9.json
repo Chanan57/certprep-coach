@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Use",
+      "options": [
+        "Analytics rules",
+        "Automation rules",
+        "Investigation graphs"
+      ],
+      "correct": "Automation rules"
+    },
+    {
+      "label": "Trigger type",
+      "options": [
+        "Alert",
+        "Entity",
+        "Incident"
+      ],
+      "correct": "Incident"
+    }
+  ],
+  "correct_answer": "Automation rules, Incident",
+  "explanation": "The solution requires automation for compliance policies, which is best achieved using automation rules and incident triggers.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_d53d8ca50649.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\f9af92d50b332f0e660d85c72f437e1f\\img_3201805f1c5d.png": "answer_key"
+  },
+  "ok": true
+}

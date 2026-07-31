@@ -1,0 +1,24 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "correct_answer": "1",
+  "explanation": "Only one Azure Bastion subnet is required to provide secure remote access to all virtual machines in the Azure virtual network.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_e2a54d246128.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_9c8e8668b210.png": "answer_key"
+  },
+  "ok": true
+}

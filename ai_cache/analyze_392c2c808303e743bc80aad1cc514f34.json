@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    }
+  ],
+  "correct_answer": "Audit",
+  "explanation": "Using the 'Audit' effect in Azure Policy allows you to evaluate compliance without making any changes to existing resources.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f44ec2037b68.png": "exhibit"
+  },
+  "ok": true
+}

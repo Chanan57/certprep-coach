@@ -1,0 +1,35 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Account shared access signatures (SAS)",
+    "Microsoft Entra Domain Services",
+    "Service shared access signatures (SAS)",
+    "User delegation shared access signatures (SAS)"
+  ],
+  "answer": [
+    "Account shared access signatures (SAS)",
+    "Service shared access signatures (SAS)"
+  ],
+  "answer_map": {
+    "Blobs": "Account shared access signatures (SAS)",
+    "Shares": "Service shared access signatures (SAS)"
+  },
+  "correct_answer": "A",
+  "explanation": "Using shared access signatures (SAS) helps to limit the permissions of accounts, preventing compromised accounts from stopping backups.",
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_534d648175d6.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_6ffeb17ff956.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,34 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Adaptive network hardening",
+    "Just-in-time (JIT) VM access",
+    "The Login with Microsoft Entra option",
+    "Microsoft Defender Vulnerability Management",
+    "The Microsoft Defender for Cloud integrated Qualys vulnerability scanner",
+    "The Rapid7 scanner"
+  ],
+  "answer": [
+    "Just-in-time (JIT) VM access",
+    "Microsoft Defender Vulnerability Management"
+  ],
+  "explanation": "Just-in-time (JIT) VM access allows for hotpatching in Azure, while Microsoft Defender Vulnerability Management enables on-demand inventory and deployment of updates.",
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_16ff11a6f381.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_7460d96e4533.png": "answer_key"
+  },
+  "ok": true
+}

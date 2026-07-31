@@ -114,26 +114,23 @@ def scenario_key(scenario):
 
 
 def _images_from_block_inline(block, image_map):
-    """New format: images bound by inline [[[IMG:hash]]] markers in the block."""
+    """
+    New format: images bound by inline [[[IMG:hash]]] markers in the block.
+
+    Each marker sits in exactly ONE question block by text position, so an
+    image belongs to the question under whose 'Question #N' tag its marker
+    falls. We DO NOT de-duplicate across questions here — if a shared exhibit
+    legitimately appears under two questions, both keep it. (The old
+    cross-question 'used' de-dup caused later questions to be robbed of their
+    own images, which shifted images onto the wrong question.)
+    """
     if not image_map:
         return []
     paths = []
     for h in IMG_MARKER_RE.findall(block):
         path = image_map.get(h.lower()) or image_map.get(h)
-        if path and path not in paths:
+        if path and path not in paths:   # de-dupe only WITHIN this block
             paths.append(path)
-    return paths
-
-
-def _images_from_block_pages(block, page_images):
-    """Legacy fallback: images bound by [[[PAGE n]]] markers in the block."""
-    if not page_images:
-        return []
-    paths = []
-    for pg in PAGE_MARKER_RE.findall(block):
-        for path in page_images.get(int(pg), []):
-            if path not in paths:
-                paths.append(path)
     return paths
 
 
@@ -142,16 +139,13 @@ def parse_questions(raw_text, image_data=None):
     image_data may be EITHER:
       - {hash: path}        (new pdf_reader — bound via inline [[[IMG:hash]]])
       - {page:int: [paths]} (legacy pdf_reader — bound via [[[PAGE n]]])
-    Both are supported so images attach regardless of pdf_reader version.
     """
     if image_data is None:
         image_data = {}
-
     legacy_pages = bool(image_data) and all(isinstance(k, int) for k in image_data.keys())
     inline_map = {} if legacy_pages else image_data
     page_map = image_data if legacy_pages else {}
-    # Track which images we've already handed out so none appear twice.
-    used = set()
+    used_pages = set()   # only used for the legacy page fallback
 
     raw_text = strip_examtopics_noise(raw_text)
     text = clean_text(raw_text)
@@ -160,13 +154,11 @@ def parse_questions(raw_text, image_data=None):
     matches = list(header_re.finditer(text))
     parsed = []
 
-    # For the legacy page format, precompute the pages each question spans:
-    # the page active AT the header, plus any page markers before the next header.
+    # Precompute pages each question spans (legacy fallback only).
     page_marks = [(m.start(), int(m.group(1))) for m in PAGE_MARKER_RE.finditer(text)]
 
     def pages_for(qstart, qend):
         pages = []
-        # page active at the header = last page marker at/before qstart
         active = None
         for pos, pg in page_marks:
             if pos <= qstart:
@@ -175,7 +167,6 @@ def parse_questions(raw_text, image_data=None):
                 break
         if active is not None:
             pages.append(active)
-        # any page markers inside the block (question spans pages)
         for pos, pg in page_marks:
             if qstart < pos < qend and pg not in pages:
                 pages.append(pg)
@@ -188,17 +179,17 @@ def parse_questions(raw_text, image_data=None):
         topic_num = match.group(1)
         q_num = match.group(2)
 
-        # Attach images: inline markers first, else legacy page markers.
+        # Inline markers -> per-block, NO cross-question de-dup (the fix).
         images = _images_from_block_inline(block, inline_map)
+        # Legacy page fallback -> keep the cross-question de-dup to avoid an
+        # image on a shared page appearing on every question that touches it.
         if not images and page_map:
             for pg in pages_for(start, end):
                 for p in page_map.get(pg, []):
-                    if p not in images:
+                    if p not in used_pages and p not in images:
                         images.append(p)
-        # De-dupe across questions.
-        images = [p for p in images if p not in used]
-        for p in images:
-            used.add(p)
+            for p in images:
+                used_pages.add(p)
 
         block_clean = PAGE_MARKER_RE.sub(" ", block)
         block_clean = IMG_MARKER_RE.sub(" ", block_clean)

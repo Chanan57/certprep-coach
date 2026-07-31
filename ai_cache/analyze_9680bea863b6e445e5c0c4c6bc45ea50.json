@@ -1,0 +1,32 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Azure Key Vault",
+    "Custom roles for build agents",
+    "Protected branches",
+    "Resource locks in Azure"
+  ],
+  "answer": [
+    "Azure Key Vault",
+    "Protected branches"
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "explanation": "Azure Key Vault is used for managing secrets and keys, while Protected branches help secure the deployment process in Git workflows.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_9f9816f79d6c.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_cbd82232defc.png": "answer_key"
+  },
+  "ok": true
+}

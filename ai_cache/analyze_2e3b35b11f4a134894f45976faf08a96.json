@@ -1,0 +1,58 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Threat modeling:",
+      "options": [
+        "Build and test",
+        "Commit the code",
+        "Go to production",
+        "Operate",
+        "Plan and develop"
+      ],
+      "correct": "Plan and develop"
+    },
+    {
+      "label": "Actionable intelligence:",
+      "options": [
+        "Build and test",
+        "Commit the code",
+        "Go to production",
+        "Operate",
+        "Plan and develop"
+      ],
+      "correct": "Operate"
+    },
+    {
+      "label": "Dynamic application security testing (DAST):",
+      "options": [
+        "Build and test",
+        "Commit the code",
+        "Go to production",
+        "Operate",
+        "Plan and develop"
+      ],
+      "correct": "Build and test"
+    }
+  ],
+  "explanation": "Following Microsoft Security Best Practices, the recommended first steps involve planning and developing a strategy, operating the system securely, and testing the application dynamically.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_9b3c8d91a71f.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_11b56d6d8725.png": "answer_key"
+  },
+  "ok": true
+}

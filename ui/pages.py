@@ -27,7 +27,7 @@ except Exception:  # noqa
 from ui.state import (
     TYPE_LABELS, reset_quiz_progress, full_reset, load_questions_into_state,
     split_scenario_sections, group_sections, format_body, apply_progress_payload,
-    qid,
+    qid, goto_question,
 )
 from ui.header import render_exam_header
 from ui.navigator import render_navigator
@@ -392,7 +392,7 @@ def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
     reset_quiz_progress()
     st.session_state.timed_mode = timed
     st.session_state.time_limit_minutes = limit
-    st.session_state.start_time = time.time()
+    st.session_state.start_time = time.time()   # (re)starts the study/reading timer
 
     if resume:
         data = prog.load_progress(st.session_state.exam_name, exam_mode)
@@ -409,6 +409,31 @@ def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
 # ---------------------------------------------------------------------------
 # Quiz / Reading page
 # ---------------------------------------------------------------------------
+
+def _render_top_nav(idx, total):
+    """P1: compact top Previous / Next bar so the learner can move between
+    questions without scrolling past long stems and community discussions."""
+    left, mid, right = st.columns([1.3, 5.4, 1.3])
+    with left:
+        if st.button("‹ Previous", key=f"top_prev_{idx}", disabled=idx == 0,
+                     use_container_width=True):
+            goto_question(idx - 1)
+    with mid:
+        st.markdown(
+            f"<div class='top-nav-pill'>Question {idx + 1} of {total}</div>",
+            unsafe_allow_html=True,
+        )
+    with right:
+        if idx < total - 1:
+            if st.button("Next ›", key=f"top_next_{idx}", type="primary",
+                         use_container_width=True):
+                goto_question(idx + 1)
+        else:
+            if st.button("🏁 Finish", key=f"top_finish_{idx}", type="primary",
+                         use_container_width=True):
+                st.session_state.quiz_completed = True
+                st.rerun()
+
 
 def show_quiz_page():
     questions = st.session_state.questions
@@ -428,6 +453,9 @@ def show_quiz_page():
     render_exam_header(q.get("question_number", idx + 1))
     if reading:
         st.caption("📖 **Reading mode** — answers and community discussion are shown.")
+
+    # P1: top Previous / Next (appears for BOTH normal and case-study questions).
+    _render_top_nav(idx, total)
 
     if q.get("is_case_study") and q.get("case_scenario"):
         _render_case_study(q, idx, reading)

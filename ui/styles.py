@@ -1,10 +1,18 @@
 """
 Modern SaaS styling for CertPrep Coach.
 
-Captures the indigo / lavender look: Poppins headings + Inter body, soft rounded
-cards, gentle shadows, purple accents and step badges. Fonts are loaded from
-Google Fonts. Every CSS class used elsewhere in the app is preserved, so this is
-a drop-in replacement for the previous styles.py.
+Indigo / lavender look: Poppins headings + Inter body, soft rounded cards, gentle
+shadows, purple accents. Fonts load from Google Fonts. Every CSS class used
+elsewhere in the app is preserved, so this is a drop-in replacement.
+
+Includes:
+  - Sidebar is FORCED visible + expanded (Streamlit kept collapsing it).
+  - The Streamlit header is kept (only toolbar/menu/footer hidden) so the « / »
+    collapse arrow still works.
+  - Navigator number grid renders as crisp, single-line square chips. The real
+    wrap culprit was Streamlit's inner <p> element inside each button — that is
+    now forced to nowrap, so "40" never splits into "4" / "0".
+  - .top-nav-pill (top Prev/Next chip) + .nav-stat-card (progress card).
 """
 
 import streamlit as st
@@ -20,19 +28,19 @@ def inject_css():
         <style>
         /* ── Palette ───────────────────────────────────────────────────── */
         :root {
-            --indigo:        #6C5CE7;   /* primary accent            */
+            --indigo:        #6C5CE7;
             --indigo-600:    #5B4BDB;
             --indigo-700:    #4B3CC4;
-            --indigo-050:    #EFEEFC;   /* soft purple fill          */
+            --indigo-050:    #EFEEFC;
             --indigo-100:    #E4E1FA;
-            --blue-info:     #3B82F6;
-            --blue-050:      #EFF6FF;
+            --green-050:     #E9F7EF;
+            --green-600:     #1E8E4E;
             --amber-050:     #FEF6E7;
             --amber-600:     #B7791F;
-            --ink:           #1E1B39;   /* near-black headings        */
-            --ink-soft:      #6B6885;   /* muted text                 */
-            --line:          #ECEBF3;   /* card borders               */
-            --bg:            #F6F6FB;   /* app background             */
+            --ink:           #1E1B39;
+            --ink-soft:      #6B6885;
+            --line:          #ECEBF3;
+            --bg:            #F6F6FB;
             --card:          #FFFFFF;
             --radius:        16px;
             --shadow:        0 6px 22px rgba(76, 60, 196, .06),
@@ -52,7 +60,6 @@ def inject_css():
         [data-testid="stMarkdownContainer"], [data-testid="stWidgetLabel"] {
             font-family: var(--font-body) !important;
         }
-        /* keep Material icon glyphs intact (don't force body font on them) */
         [data-testid="stIconMaterial"], .material-icons, .material-icons-outlined,
         span[class*="material-symbols"], [data-testid="stExpandIcon"] {
             font-family: 'Material Symbols Rounded','Material Symbols Outlined','Material Icons' !important;
@@ -63,7 +70,14 @@ def inject_css():
             color: var(--ink); font-weight: 700; letter-spacing: -.01em;
         }
         h1 {font-size: 2.4rem; font-weight: 800;}
-        #MainMenu, header, footer {visibility: hidden;}
+
+        /* Hide menu + footer + deploy toolbar, but KEEP the header so the
+           sidebar « / » collapse control stays alive. */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        [data-testid="stToolbar"] {visibility: hidden; height: 0;}
+        header[data-testid="stHeader"] {background: transparent;}
+
         .block-container {padding-top: 1.4rem; padding-bottom: 5rem; max-width: 1300px;}
 
         /* ── Cards / containers ────────────────────────────────────────── */
@@ -94,7 +108,6 @@ def inject_css():
             border-color: var(--indigo-100); background: var(--indigo-050);
             color: var(--indigo-700);
         }
-        /* Primary = indigo gradient */
         div.stButton > button[kind="primary"] {
             background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-600) 100%);
             color: #fff; border: none; font-weight: 700; padding: .55rem 1.6rem;
@@ -118,11 +131,11 @@ def inject_css():
             box-shadow: 0 0 0 3px var(--indigo-050) !important;
         }
 
-        /* ── Alerts (info/warn) rounded + tinted ───────────────────────── */
+        /* ── Alerts ────────────────────────────────────────────────────── */
         .stAlert {border-radius: 12px; border: none;}
         div[data-baseweb="notification"] {border-radius: 12px;}
 
-        /* ── Exam header (question view) ───────────────────────────────── */
+        /* ── Exam header ───────────────────────────────────────────────── */
         .exam-topbar {display: flex; justify-content: space-between; align-items: flex-start;
             border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 6px;}
         .exam-qnum {font-family: var(--font-head); font-size: 1.7rem; font-weight: 700; color: var(--ink);}
@@ -141,6 +154,26 @@ def inject_css():
         .q-text {font-size: 1.02rem; color: var(--ink); line-height: 1.75;}
         .q-text strong {color: var(--ink);}
 
+        /* ── Top Prev/Next pill ────────────────────────────────────────── */
+        .top-nav-pill {
+            text-align: center; padding: .55rem .9rem; border-radius: 999px;
+            background: var(--indigo-050); color: var(--indigo-700);
+            font-family: var(--font-head); font-weight: 700; font-size: .95rem;
+            border: 1px solid var(--indigo-100);
+        }
+
+        /* ── Sidebar navigator stat card ───────────────────────────────── */
+        .nav-stat-card {
+            padding: 14px 16px; border-radius: 14px; margin-bottom: 10px;
+            background: linear-gradient(135deg, rgba(108,92,231,.12), rgba(129,140,248,.08));
+            border: 1px solid var(--indigo-100);
+        }
+        .nav-stat-title {font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
+            color: var(--ink-soft); font-weight: 700;}
+        .nav-stat-main {margin-top: 4px; font-family: var(--font-head); font-size: 1.5rem;
+            font-weight: 800; color: var(--ink);}
+        .nav-stat-sub {margin-top: 2px; font-size: .8rem; color: var(--ink-soft);}
+
         /* ── Case study left nav ───────────────────────────────────────── */
         .cs-qcount {font-family: var(--font-head); font-weight: 700; color: var(--ink); margin-bottom: 12px;}
         .cs-nav div.stButton > button {
@@ -154,13 +187,61 @@ def inject_css():
             color: #fff; border: none; box-shadow: 0 4px 12px rgba(108,92,231,.28);
         }
 
-        /* ── Sidebar ───────────────────────────────────────────────────── */
+        /* ── Sidebar: FORCE visible + expanded ─────────────────────────── */
         section[data-testid="stSidebar"] {
             background: #fff !important; border-right: 1px solid var(--line);
+            visibility: visible !important; display: block !important;
+            transform: none !important; margin-left: 0 !important;
+            min-width: 330px !important; width: 330px !important; left: 0 !important;
         }
-        section[data-testid="stSidebar"] .stButton > button {border-radius: 12px;}
+        section[data-testid="stSidebar"][aria-expanded="false"] {
+            transform: none !important; margin-left: 0 !important;
+            min-width: 330px !important; width: 330px !important;
+        }
+        section[data-testid="stSidebar"] > div {width: 330px !important; visibility: visible !important;}
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapseButton"],
+        button[kind="header"] {
+            visibility: visible !important; display: flex !important; z-index: 999999 !important;
+        }
         section[data-testid="stSidebar"] h2, section[data-testid="stSidebar"] h3 {
             font-family: var(--font-head);
+        }
+        /* Home / Save + generic sidebar buttons */
+        section[data-testid="stSidebar"] .stButton > button {border-radius: 12px;}
+
+        /* ── Navigator NUMBER GRID: crisp single-line square chips ─────────
+           4-per-row so chips are wide enough for 2 digits. The KEY fix is
+           forcing nowrap on the inner <p>/markdown element — that inner node
+           is what wrapped "40" into "4" / "0", not the button itself. */
+        section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] {
+            gap: 8px !important;
+        }
+        section[data-testid="stSidebar"] [data-testid="column"] div.stButton > button {
+            width: 100% !important; min-width: 0 !important;
+            height: 46px !important; padding: 0 2px !important;
+            border-radius: 12px !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            overflow: hidden !important;
+        }
+        section[data-testid="stSidebar"] [data-testid="column"] div.stButton > button * {
+            white-space: nowrap !important;   /* <-- stops 40 -> 4 / 0 */
+            overflow: visible !important;
+            font-family: var(--font-head) !important;
+            font-size: .95rem !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            letter-spacing: .01em !important;
+            margin: 0 !important;
+            display: inline-block !important;
+        }
+        section[data-testid="stSidebar"] [data-testid="column"] div.stButton > button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(108,92,231,.20) !important;
+        }
+        section[data-testid="stSidebar"] [data-testid="column"] div.stButton > button[kind="primary"] {
+            box-shadow: 0 5px 14px rgba(108,92,231,.42) !important;
         }
 
         /* ── Dataframe ─────────────────────────────────────────────────── */
@@ -173,13 +254,12 @@ def inject_css():
         }
         .stTabs [aria-selected="true"] {background: var(--indigo-050); color: var(--indigo-700);}
 
-        /* ── Brand + step badge helpers (usable from markdown) ─────────── */
+        /* ── Helpers ───────────────────────────────────────────────────── */
         .brand-wrap {display: flex; align-items: center; gap: 12px; margin-bottom: 6px;}
         .brand-title {font-family: var(--font-head); font-weight: 800; font-size: 1.15rem; color: var(--ink);}
         .step-badge {display: inline-flex; align-items: center; justify-content: center;
             width: 26px; height: 26px; border-radius: 50%;
-            background: var(--indigo); color: #fff; font-weight: 700; font-size: .85rem;
-            margin-right: 8px;}
+            background: var(--indigo); color: #fff; font-weight: 700; font-size: .85rem; margin-right: 8px;}
         .pill {display: inline-block; padding: 4px 12px; border-radius: 999px;
             background: var(--indigo-050); color: var(--indigo-700); font-weight: 600; font-size: .8rem;}
         .subtle {color: var(--ink-soft);}

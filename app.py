@@ -1,19 +1,23 @@
 """
 CertPrep Coach — entry point / router.
 
-Renders EXACTLY ONE page per run via a strict if/elif/else chain. The priority
-order below guarantees the quiz never renders together with the mode chooser
-(the bug where setup controls leaked beneath the live question):
-
-    quiz_completed  -> results/report
-    quiz_started    -> the quiz  (takes priority over show_mode)
-    show_mode       -> mode chooser
-    (no questions)  -> home
+Renders EXACTLY ONE page per run via a strict if/elif/else chain. Order matters:
+quiz_started is checked BEFORE show_mode, so a running quiz can never render
+together with the mode chooser (the 'Coverage shows under the quiz' bug).
 """
 
 import streamlit as st
 
-st.set_page_config(page_title="CertPrep Coach", page_icon="📘", layout="wide")
+# initial_sidebar_state="expanded" -> the left navigator starts OPEN so the
+# jump-to-question list is visible immediately. Streamlit still shows the built-in
+# « / » arrow, so the user can collapse it for more reading room and reopen it
+# any time. Both behaviours, no extra code.
+st.set_page_config(
+    page_title="CertPrep Coach",
+    page_icon="📘",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 from ui.state import initialise_session_state
 from ui.styles import inject_css
@@ -31,8 +35,7 @@ def main():
 
     ss = st.session_state
 
-    # Strict single-page routing. Order matters: quiz_started is checked BEFORE
-    # show_mode so a running quiz can never render alongside the setup page.
+    # STRICT single-page routing — exactly one branch runs.
     if not ss.all_questions:
         show_home_page()
     elif ss.quiz_completed:

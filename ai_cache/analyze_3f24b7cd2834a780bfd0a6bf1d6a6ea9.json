@@ -1,0 +1,59 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "table"
+    },
+    {
+      "index": 2,
+      "role": "exhibit"
+    },
+    {
+      "index": 3,
+      "role": "question"
+    },
+    {
+      "index": 4,
+      "role": "answer_key"
+    }
+  ],
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [
+    {
+      "label": "File1 will be deleted after you turn on the policy.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "Yes"
+    },
+    {
+      "label": "File2 will be deleted after you turn on the policy.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "No"
+    },
+    {
+      "label": "File3 will be deleted after you turn on the policy.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "No"
+    }
+  ],
+  "correct_answer": "",
+  "explanation": "File1 will be deleted because it is in a SharePoint site and is older than the retention period. File2 and File3 are not affected by the policy.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_21a7d26c43da.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_685abe42d143.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_9a9fa3b260a4.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_cbdec7d12f79.png": "answer_key"
+  },
+  "ok": true
+}

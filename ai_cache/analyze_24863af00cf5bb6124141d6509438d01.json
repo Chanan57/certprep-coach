@@ -1,0 +1,52 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Developer",
+      "options": [
+        "Enterprise security",
+        "Privileged security",
+        "Specialized security"
+      ],
+      "correct": "Specialized security"
+    },
+    {
+      "label": "Standard user",
+      "options": [
+        "Enterprise security",
+        "Privileged security",
+        "Specialized security"
+      ],
+      "correct": "Enterprise security"
+    },
+    {
+      "label": "IT administrator",
+      "options": [
+        "Enterprise security",
+        "Privileged security",
+        "Specialized security"
+      ],
+      "correct": "Privileged security"
+    }
+  ],
+  "explanation": "The security levels are assigned based on the principle of least privilege, ensuring that each role has the appropriate level of access necessary for their functions.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_18865f93b930.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_4d244dd5ed99.png": "answer_key"
+  },
+  "ok": true
+}

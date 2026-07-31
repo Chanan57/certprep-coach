@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Exchange Online email:",
+      "options": [
+        "A header only",
+        "A watermark only",
+        "A watermark and a header"
+      ],
+      "correct": "A watermark and a header"
+    },
+    {
+      "label": "Site1 documents:",
+      "options": [
+        "A header only",
+        "A watermark only",
+        "A watermark and a header"
+      ],
+      "correct": "A watermark and a header"
+    }
+  ],
+  "explanation": "Sensitivity1 applies both a watermark and a header to emails and documents, as indicated by the policy settings.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_2eaac9b3292a.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_21efc380b53c.png": "answer_key"
+  },
+  "ok": true
+}

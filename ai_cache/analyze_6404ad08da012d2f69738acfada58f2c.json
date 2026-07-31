@@ -1,0 +1,59 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    },
+    {
+      "index": 2,
+      "role": "exhibit"
+    },
+    {
+      "index": 3,
+      "role": "question"
+    },
+    {
+      "index": 4,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "The Internal sensitivity label inherits all the settings from the Confidential label.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "Yes"
+    },
+    {
+      "label": "Users must provide justification if they change the label of content from Confidential/Internal to Confidential/External.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "Yes"
+    },
+    {
+      "label": "Content that has the Confidential/External label applied will retain the encryption settings if the sensitivity label is removed from the label policy.",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "correct": "No"
+    }
+  ],
+  "explanation": "The Internal label inherits settings from Confidential, justification is required for label changes, but encryption settings do not persist if the label is removed.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_b6f77cadc3cd.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_f7732e2e08dd.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_efd08d24883f.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_1e6b84a658b2.png": "answer_key"
+  },
+  "ok": true
+}

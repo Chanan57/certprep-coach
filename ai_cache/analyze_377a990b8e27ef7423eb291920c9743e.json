@@ -1,0 +1,48 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "table"
+    },
+    {
+      "index": 2,
+      "role": "question"
+    },
+    {
+      "index": 3,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "User1",
+      "options": [
+        "File1.docx only",
+        "File1.docx and File2.docx only",
+        "File1.docx, File2.docx, and File3.docx"
+      ],
+      "correct": "File1.docx and File2.docx only"
+    },
+    {
+      "label": "User2",
+      "options": [
+        "File1.docx only",
+        "File1.docx and File2.docx only",
+        "File1.docx, File2.docx, and File3.docx"
+      ],
+      "correct": "File1.docx and File2.docx only"
+    }
+  ],
+  "explanation": "User1 can access File1 and File2, while User2 can also access File1 and File2, but not File3 due to DLP restrictions.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_b408d64a2b27.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_fa93a7d94504.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_70a3b30aba8f.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,56 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    },
+    {
+      "index": 2,
+      "role": "question"
+    },
+    {
+      "index": 3,
+      "role": "answer_key"
+    },
+    {
+      "index": 4,
+      "role": "other"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "For WAF:",
+      "options": [
+        "The Azure Diagnostics extension",
+        "Azure Network Watcher",
+        "Data connectors",
+        "Workflow automation"
+      ],
+      "correct": "Data connectors"
+    },
+    {
+      "label": "For the virtual machines:",
+      "options": [
+        "The Azure Diagnostics extension",
+        "Azure Storage Analytics",
+        "Data connectors",
+        "The Log Analytics agent",
+        "Workflow automation"
+      ],
+      "correct": "The Log Analytics agent"
+    }
+  ],
+  "correct_answer": "Data connectors, The Log Analytics agent",
+  "explanation": "Integrating WAF logs with Microsoft Sentinel requires using data connectors, while reviewing alerts from virtual machines necessitates the Log Analytics agent.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_8dd750fe6240.png": "exhibit",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_c260b7626af9.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_3b805997df71.png": "answer_key",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_c76da414f048.png": "other"
+  },
+  "ok": true
+}

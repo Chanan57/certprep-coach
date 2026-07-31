@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Authorization mechanism:",
+      "options": [
+        "Access control list (ACL)",
+        "Attribute-based access control (ABAC)",
+        "Shared access signature (SAS)"
+      ],
+      "correct": "Attribute-based access control (ABAC)"
+    },
+    {
+      "label": "Resource type:",
+      "options": [
+        "Blob",
+        "File",
+        "Table"
+      ],
+      "correct": "Blob"
+    }
+  ],
+  "correct_answer": "Attribute-based access control (ABAC), Blob",
+  "explanation": "Using Attribute-based access control (ABAC) allows for fine-grained access control based on assigned tags, and storing confidential data in a Blob is suitable for such use cases.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_689dad50cb5a.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\cf8c559d8f0bece374c7d4fa1be4b89b\\img_3616eaf1f9df.png": "answer_key"
+  },
+  "ok": true
+}

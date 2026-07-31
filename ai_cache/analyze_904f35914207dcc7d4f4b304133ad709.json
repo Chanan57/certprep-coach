@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Azure resource:",
+      "options": [
+        "A Microsoft Sentinel workspace",
+        "An Azure Automation account",
+        "Microsoft Defender for Servers Plan 2"
+      ],
+      "correct": "Microsoft Defender for Servers Plan 2"
+    },
+    {
+      "label": "Agent on the servers:",
+      "options": [
+        "The Azure Connected Machine agent",
+        "The Azure Monitor Agent",
+        "The Log Analytics agent"
+      ],
+      "correct": "The Azure Connected Machine agent"
+    }
+  ],
+  "explanation": "To deploy Update Management, you need to configure Microsoft Defender for Servers Plan 2 and use the Azure Connected Machine agent for the servers.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_15798b2719d5.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f2809cb3f56d.png": "answer_key"
+  },
+  "ok": true
+}

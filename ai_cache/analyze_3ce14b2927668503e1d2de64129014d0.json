@@ -1,0 +1,47 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To enable Azure AD authentication for App1, use:",
+      "options": [
+        "Azure AD application",
+        "Azure AD Application Proxy",
+        "Azure Application Gateway",
+        "A managed identity in Azure AD",
+        "Microsoft Defender for App"
+      ],
+      "correct": "Azure AD application"
+    },
+    {
+      "label": "To implement access requests for App1, use:",
+      "options": [
+        "An access package in Identity Governance",
+        "An access policy in Microsoft Defender for Cloud Apps",
+        "An access review in Identity Governance",
+        "Azure AD Conditional Access App Control",
+        "An OAuth app policy in Microsoft Defender for Cloud Apps"
+      ],
+      "correct": "An access package in Identity Governance"
+    }
+  ],
+  "explanation": "The Azure AD application is necessary for authentication, and an access package in Identity Governance facilitates access requests.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f69513f9a199.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_387e8907c99a.png": "answer_key"
+  },
+  "ok": true
+}

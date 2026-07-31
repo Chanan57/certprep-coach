@@ -1,0 +1,39 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "An Azure Automation account",
+    "A blueprint",
+    "A managed identity",
+    "Workflow automation",
+    "Edit an Azure blueprint",
+    "Modify a Defender for Cloud workflow automation",
+    "Modify an Azure policy definition",
+    "Update an Azure policy assignment"
+  ],
+  "answer": [
+    "A blueprint",
+    "Update an Azure policy assignment"
+  ],
+  "answer_map": {
+    "1": "A blueprint",
+    "2": "Update an Azure policy assignment"
+  },
+  "explanation": "The correct answers are highlighted in the answer key image, indicating the necessary actions to enforce compliance and exclude TestRG.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_9ebf83cf998d.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_29708081628c.png": "answer_key"
+  },
+  "ok": true
+}

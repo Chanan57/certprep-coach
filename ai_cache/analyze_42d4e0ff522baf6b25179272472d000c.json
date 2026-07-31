@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    }
+  ],
+  "correct_answer": "B",
+  "explanation": "To isolate compute components in a serverless application on Azure, using a virtual network is essential for secure communication between services.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_8beb30aed973.png": "exhibit"
+  },
+  "ok": true
+}

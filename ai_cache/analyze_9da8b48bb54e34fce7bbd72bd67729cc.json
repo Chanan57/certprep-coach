@@ -1,0 +1,33 @@
+{
+  "type": "SIMULATION",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    }
+  ],
+  "items": [
+    "Navigate to DLP policies",
+    "Edit the policy",
+    "Locate the policy mode settings",
+    "Enable simulation mode",
+    "Configure optional settings",
+    "Save and submit"
+  ],
+  "answer": [
+    "Navigate to DLP policies",
+    "Edit the policy",
+    "Locate the policy mode settings",
+    "Enable simulation mode",
+    "Configure optional settings",
+    "Save and submit"
+  ],
+  "explanation": "To reduce false positives in GDPR DLP policies, running the policy in simulation mode allows for identifying issues without blocking actions, enabling a review of results before full deployment.",
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_c4e0e4f8b9b1.png": "question"
+  },
+  "ok": true
+}

@@ -1,0 +1,34 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "The Microsoft Purview extension",
+    "The Microsoft Defender Browser Protection extension",
+    "The Microsoft Purview Information Protection client"
+  ],
+  "answer": [
+    "The Microsoft Purview Information Protection client",
+    "The Microsoft Purview extension"
+  ],
+  "answer_map": {
+    "Device1": "The Microsoft Purview Information Protection client",
+    "Device2": "The Microsoft Purview extension"
+  },
+  "correct_answer": "The Microsoft Purview Information Protection client, The Microsoft Purview extension",
+  "explanation": "Deploying the Microsoft Purview Information Protection client on Device1 and the Microsoft Purview extension on Device2 ensures that signals are collected when files are copied to USB devices.",
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_561ec21f98dd.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_ad8bf7408def.png": "answer_key"
+  },
+  "ok": true
+}

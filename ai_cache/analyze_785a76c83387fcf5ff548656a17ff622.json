@@ -1,0 +1,57 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Access control settings",
+      "options": [
+        "Remove access control settings if already applied to items",
+        "Configure access control settings"
+      ],
+      "correct": "Configure access control settings"
+    },
+    {
+      "label": "Assign permissions",
+      "options": [
+        "Assign permissions now",
+        "Let users decide"
+      ],
+      "correct": "Assign permissions now"
+    },
+    {
+      "label": "Allow offline access",
+      "options": [
+        "Always",
+        "Never"
+      ],
+      "correct": "Always"
+    },
+    {
+      "label": "Use Double Key Encryption",
+      "options": [
+        "Enabled",
+        "Disabled"
+      ],
+      "correct": "Enabled"
+    }
+  ],
+  "explanation": "To enable co-authoring for encrypted files with the specified sensitivity label, you need to configure access control settings, assign permissions now, allow offline access, and enable Double Key Encryption.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_4793dd2c8494.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_1a4847bcb725.png": "answer_key"
+  },
+  "ok": true
+}

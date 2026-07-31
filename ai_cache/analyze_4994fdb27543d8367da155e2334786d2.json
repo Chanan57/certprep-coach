@@ -1,0 +1,36 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Add a Microsoft Sentinel data connector for Azure Active Directory (Azure AD).",
+    "Add a Microsoft Sentinel data connector for Microsoft Defender for Cloud Apps.",
+    "Onboard the servers to Azure Arc.",
+    "Onboard the servers to Defender for Cloud.",
+    "Configure Microsoft Sentinel analytics rules.",
+    "Configure Microsoft Sentinel playbooks.",
+    "Configure regulatory compliance standards in Defender for Cloud.",
+    "Configure workflow automation in Defender for Cloud."
+  ],
+  "answer": [
+    "Onboard the servers to Defender for Cloud.",
+    "Configure Microsoft Sentinel playbooks."
+  ],
+  "explanation": "To enable EDR, onboarding the servers to Defender for Cloud is essential, while configuring Microsoft Sentinel playbooks enhances SOAR capabilities.",
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_02bc4fa8260b.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f15b3ca455cf.png": "answer_key"
+  },
+  "ok": true
+}

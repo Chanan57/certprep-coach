@@ -1,0 +1,45 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Commit the code",
+      "options": [
+        "Dynamic application security testing (DAST)",
+        "Penetration testing",
+        "Smoke testing",
+        "Static application security testing (SAST)"
+      ],
+      "correct": "Static application security testing (SAST)"
+    },
+    {
+      "label": "Build and test",
+      "options": [
+        "Dynamic application security testing (DAST)",
+        "Penetration testing",
+        "Smoke testing",
+        "Static application security testing (SAST)"
+      ],
+      "correct": "Dynamic application security testing (DAST)"
+    }
+  ],
+  "explanation": "Static application security testing (SAST) is recommended for the 'Commit the code' stage to identify vulnerabilities early, while dynamic application security testing (DAST) is suitable for the 'Build and test' stage to test the running application.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_72ab1fb5e61d.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_76b7a774baca.png": "answer_key"
+  },
+  "ok": true
+}

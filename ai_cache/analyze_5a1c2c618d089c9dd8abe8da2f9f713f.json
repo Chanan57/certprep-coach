@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    }
+  ],
+  "correct_answer": "B",
+  "explanation": "Using a private endpoint for the Azure App Service allows secure communication with the on-premises application server while minimizing the need for public IP addresses.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_6e365442ad26.png": "exhibit"
+  },
+  "ok": true
+}

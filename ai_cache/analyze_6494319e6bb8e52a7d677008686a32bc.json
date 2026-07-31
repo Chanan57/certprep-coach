@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Action to perform",
+      "options": [
+        "Create an Exact Data Match (EDM) schema.",
+        "Import a data loss prevention (DLP) rule package.",
+        "Start the opt-in process."
+      ],
+      "correct": "Start the opt-in process."
+    },
+    {
+      "label": "To perform the action, assign the role of:",
+      "options": [
+        "Compliance Administrator",
+        "Global Administrator",
+        "Security Administrator"
+      ],
+      "correct": "Compliance Administrator"
+    }
+  ],
+  "correct_answer": "Start the opt-in process. | Compliance Administrator",
+  "explanation": "Starting the opt-in process and assigning the Compliance Administrator role adheres to the principle of least privilege for creating a custom trainable classifier.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_fc69fd782936.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_9b0b698cd6d2.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,44 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Policy template:",
+      "options": [
+        "Data leaks",
+        "Risky browser usage",
+        "Security policy violations"
+      ],
+      "correct": "Data leaks"
+    },
+    {
+      "label": "Policy template prerequisite:",
+      "options": [
+        "A data loss prevention (DLP) policy",
+        "A retention policy",
+        "An alert policy",
+        "An eDiscovery case"
+      ],
+      "correct": "A data loss prevention (DLP) policy"
+    }
+  ],
+  "explanation": "Using the 'Data leaks' policy template and requiring a 'data loss prevention (DLP) policy' minimizes administrative effort while effectively detecting accidental oversharing.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_d2f1a0c7f5c0.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_1706b983b693.png": "answer_key"
+  },
+  "ok": true
+}

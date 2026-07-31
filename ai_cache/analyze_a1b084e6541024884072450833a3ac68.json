@@ -1,0 +1,45 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "table"
+    },
+    {
+      "index": 2,
+      "role": "table"
+    },
+    {
+      "index": 3,
+      "role": "question"
+    },
+    {
+      "index": 4,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "No files",
+    "File1 only",
+    "File2 only",
+    "File1 and File2"
+  ],
+  "answer": [
+    "No files",
+    "File1 only"
+  ],
+  "answer_map": {
+    "May 15, 2025": "No files",
+    "Aug 15, 2026": "File1 only"
+  },
+  "explanation": "User1 cannot delete File2 due to its retention label, while User2 can delete File1 after its retention period ends.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_a0eb6e89d7b2.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_6d5037cc69af.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_72af88df9a12.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_0c2a384ce8a3.png": "answer_key"
+  },
+  "ok": true
+}

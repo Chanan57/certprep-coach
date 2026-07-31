@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To identify the documents, use a data classification of:",
+      "options": [
+        "Exact data match (EDM)",
+        "Sensitive info type",
+        "Trainable classifier"
+      ],
+      "correct": "Sensitive info type"
+    },
+    {
+      "label": "Configure data classifications by using a:",
+      "options": [
+        "Keyword dictionary",
+        "Regular expression",
+        "Function"
+      ],
+      "correct": "Regular expression"
+    }
+  ],
+  "explanation": "Using 'Sensitive info type' and 'Regular expression' allows for efficient identification of specific document patterns with minimal administrative effort.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_7a1aa100c138.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_9e9277a0d8dc.png": "answer_key"
+  },
+  "ok": true
+}

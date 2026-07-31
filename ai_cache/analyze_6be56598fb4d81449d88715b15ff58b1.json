@@ -1,0 +1,59 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "table"
+    },
+    {
+      "index": 2,
+      "role": "table"
+    },
+    {
+      "index": 3,
+      "role": "question"
+    },
+    {
+      "index": 4,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Publish to:",
+      "options": [
+        "Site1 only",
+        "Group1 only",
+        "Group1 and Group2 only",
+        "Group1 and Site1 only",
+        "Site1 and Team1 only",
+        "Group1, Group2, Site1, and Team1"
+      ],
+      "correct": "Group1, Group2, Site1, and Team1"
+    },
+    {
+      "label": "Auto-apply to:",
+      "options": [
+        "Site1 only",
+        "Group1 only",
+        "Group1 and Group2 only",
+        "Group1 and Site1 only",
+        "Site1 and Team1 only",
+        "Group1, Group2, Site1, and Team1"
+      ],
+      "correct": "Site1 only"
+    }
+  ],
+  "explanation": "Label1 can be published to multiple groups and sites, and it can be auto-applied to specific sites based on the configurations shown.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_7b88061abca0.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_041c3cb75e6f.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_c184fbde71ec.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_025769500c81.png": "answer_key"
+  },
+  "ok": true
+}

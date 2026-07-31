@@ -1,0 +1,19 @@
+{
+  "type": "SIMULATION",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    }
+  ],
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "explanation": "This simulation requires configuring Endpoint DLP settings in the Microsoft Purview portal to restrict onedrive.exe actions.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_0eb24b671eb0.png": "question"
+  },
+  "ok": true
+}

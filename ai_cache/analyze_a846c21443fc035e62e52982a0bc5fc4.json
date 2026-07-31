@@ -1,0 +1,37 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Business continuity",
+    "Data classification",
+    "Just-in-time (JIT) access",
+    "Segmenting access"
+  ],
+  "answer": [
+    "Segmenting access",
+    "Data classification",
+    "Just-in-time (JIT) access"
+  ],
+  "answer_map": {
+    "Assume breach": "Segmenting access",
+    "Verify explicitly": "Data classification",
+    "Use least privilege access": "Just-in-time (JIT) access"
+  },
+  "correct_answer": "",
+  "explanation": "The methodologies align with Zero Trust principles by ensuring that access is segmented, data is classified for security, and privileges are granted only when necessary.",
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_f9e1a437bbe8.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_092ff2635686.png": "answer_key"
+  },
+  "ok": true
+}

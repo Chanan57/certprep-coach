@@ -1,0 +1,33 @@
+{
+  "type": "SIMULATION",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    }
+  ],
+  "items": [
+    "Retain items for a specific period",
+    "Select 10 years",
+    "Start the retention period based on",
+    "Select June 1, 2025",
+    "At the end of the retention period",
+    "Delete items automatically"
+  ],
+  "answer": [
+    "Retain items for a specific period",
+    "Select 10 years",
+    "Start the retention period based on",
+    "Select June 1, 2025",
+    "At the end of the retention period",
+    "Delete items automatically"
+  ],
+  "explanation": "To create a retention label, you must specify the retention period and the actions to take at the end of that period.",
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_b49dcd0210ed.png": "question"
+  },
+  "ok": true
+}

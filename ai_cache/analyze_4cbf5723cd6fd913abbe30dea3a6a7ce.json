@@ -1,0 +1,37 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Azure Blueprints",
+    "Defender for Cloud",
+    "Microsoft Defender for Cloud Apps",
+    "Microsoft Defender for servers",
+    "Microsoft Endpoint Manager",
+    "Microsoft Sentinel"
+  ],
+  "answer": [
+    "Defender for Cloud",
+    "Microsoft Sentinel"
+  ],
+  "answer_map": {
+    "AWS EC2 instances": "Defender for Cloud",
+    "AWS service logs": "Microsoft Sentinel"
+  },
+  "explanation": "The correct answers are highlighted in the answer key image, indicating the appropriate services for the specified AWS categories.",
+  "dropdowns": [],
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_9944776bcf2e.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\4b8b51edc89eea8fe3e1864f64cf1c80\\img_98b6f92753bd.png": "answer_key"
+  },
+  "ok": true
+}

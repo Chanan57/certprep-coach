@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To mitigate attacks that make copies of files, encrypt the copies, and then delete the original files, use:",
+      "options": [
+        "Data loss prevention (DLP) policies",
+        "The Recycle Bin",
+        "Versioning"
+      ],
+      "correct": "The Recycle Bin"
+    },
+    {
+      "label": "To mitigate attacks that encrypt files in place, use:",
+      "options": [
+        "Data loss prevention (DLP) policies",
+        "The Recycle Bin",
+        "Versioning"
+      ],
+      "correct": "Versioning"
+    }
+  ],
+  "explanation": "Using the Recycle Bin helps recover deleted files, while Versioning allows restoring previous versions of files, effectively mitigating ransomware attacks.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_796ae76d86d7.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_2627ba5fefc3.png": "answer_key"
+  },
+  "ok": true
+}

@@ -1,0 +1,34 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Establish ransomware recovery readiness.",
+    "Enable additional protection and detection controls.",
+    "Establish visibility.",
+    "Implement disaster recovery.",
+    "Enable automation."
+  ],
+  "answer": [
+    "Establish visibility.",
+    "Enable additional protection and detection controls.",
+    "Enable automation."
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "explanation": "Prioritizing visibility, additional protection, and automation aligns with the Zero Trust framework to enhance security operations.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_0d048638039c.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_8d9a8a9d52cf.png": "answer_key"
+  },
+  "ok": true
+}

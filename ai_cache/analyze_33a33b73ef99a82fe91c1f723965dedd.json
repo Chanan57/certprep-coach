@@ -1,0 +1,45 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "First:",
+      "options": [
+        "Configure the Insider risk management settings.",
+        "Create a new import job in the Data lifecycle management settings.",
+        "Create a subject rights request.",
+        "Register an app in Microsoft Entra ID."
+      ],
+      "correct": "Configure the Insider risk management settings."
+    },
+    {
+      "label": "Import as:",
+      "options": [
+        "CSV",
+        "XLSX",
+        "XML",
+        "ODS"
+      ],
+      "correct": "CSV"
+    }
+  ],
+  "correct_answer": "Configure the Insider risk management settings. | CSV",
+  "explanation": "To import HR data for insider risk management, you must first configure the settings and use the CSV format for data import.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_32b110a91cec.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_d2132e919f84.png": "answer_key"
+  },
+  "ok": true
+}

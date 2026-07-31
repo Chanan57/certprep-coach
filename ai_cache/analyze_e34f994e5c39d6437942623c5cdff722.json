@@ -1,0 +1,45 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "To connect the Azure data sources to Microsoft Information Protection:",
+      "options": [
+        "Azure Purview",
+        "Endpoint data loss prevention",
+        "Microsoft Defender for Cloud Apps",
+        "Microsoft Information Protection"
+      ],
+      "correct": "Azure Purview"
+    },
+    {
+      "label": "To triage security alerts related to resources that contain PII data:",
+      "options": [
+        "Azure Monitor",
+        "Endpoint data loss prevention",
+        "Microsoft Defender for Cloud",
+        "Microsoft Defender for Cloud Apps"
+      ],
+      "correct": "Microsoft Defender for Cloud"
+    }
+  ],
+  "explanation": "Azure Purview is used for data governance and classification, while Microsoft Defender for Cloud helps in triaging security alerts related to PII data.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_d0ac2dbb0f32.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_b76df5e39987.png": "answer_key"
+  },
+  "ok": true
+}

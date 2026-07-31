@@ -1,0 +1,45 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "Data security",
+      "options": [
+        "Access keys stored in Azure Key Vault",
+        "Automation Contributor built-in role",
+        "Azure Private Link with network service tags",
+        "Azure Web Application Firewall rules with network service tags"
+      ],
+      "correct": "Access keys stored in Azure Key Vault"
+    },
+    {
+      "label": "Network access control",
+      "options": [
+        "Access keys stored in Azure Key Vault",
+        "Automation Contributor built-in role",
+        "Azure Private Link with network service tags",
+        "Azure Web Application Firewall rules with network service tags"
+      ],
+      "correct": "Azure Private Link with network service tags"
+    }
+  ],
+  "explanation": "Using Azure Key Vault for data security ensures that sensitive information is stored securely, while Azure Private Link provides secure network access control.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_d96ef4fc3655.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\bec93bf59034e72c25f6c86b1b672429\\img_136e127f3af1.png": "answer_key"
+  },
+  "ok": true
+}

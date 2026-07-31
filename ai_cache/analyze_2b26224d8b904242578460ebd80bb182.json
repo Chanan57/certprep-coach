@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "An attacker attempts to exfiltrate data to external websites:",
+      "options": [
+        "Microsoft Defender for Cloud Apps",
+        "Microsoft Defender for Identity",
+        "Microsoft Defender for Office 365"
+      ],
+      "correct": "Microsoft Defender for Cloud Apps"
+    },
+    {
+      "label": "An attacker attempts lateral movement across domain-joined computers:",
+      "options": [
+        "Microsoft Defender for Cloud Apps",
+        "Microsoft Defender for Identity",
+        "Microsoft Defender for Office 365"
+      ],
+      "correct": "Microsoft Defender for Identity"
+    }
+  ],
+  "correct_answer": "Microsoft Defender for Cloud Apps; Microsoft Defender for Identity",
+  "explanation": "Microsoft Defender for Cloud Apps helps protect against data exfiltration, while Microsoft Defender for Identity is designed to detect and respond to lateral movement across domain-joined computers.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_c3aa9b7410b2.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_1ef492185b42.png": "answer_key"
+  },
+  "ok": true
+}

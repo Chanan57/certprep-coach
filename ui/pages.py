@@ -10,6 +10,7 @@ import pandas as pd
 from src.pdf_reader import extract_pdf_content
 from src.question_parser import parse_questions
 from src import library as lib
+from src import exam_prep
 from src import exam_builder as eb
 from src import progress as prog
 from src.quiz_engine import (
@@ -37,15 +38,44 @@ from ui.questions import (
 from ui.report import render_report
 
 
+# ---------------------------------------------------------------------------
+# AI config helpers
+#
+# TOKEN POLICY: OpenAI is called (tokens spent) ONLY via the explicit "Prepare"
+# / "Create & prepare" action, which uses the REAL key (_ai_cfg()).
+# Practice, Reading, prewarm and per-question rendering use a CACHE-ONLY config
+# (_ai_cfg_cache_only) — it reads the shared/local disk cache for free and never
+# calls the API. If a question wasn't prepared, it simply falls back to
+# manual / positional rendering (no tokens spent).
+# ---------------------------------------------------------------------------
+
 def _ai_cfg():
+    """Real config (has the API key) — used ONLY by Prepare."""
     if not HAS_AI:
         return None
     return ai.get_config()
 
 
+def _ai_cfg_cache_only():
+    """
+    A config that reads the disk cache but NEVER calls the API, because it has
+    no api_key. analyze_question reads the cache BEFORE checking the key, so a
+    key-less config = "return cached result if present, else give up" — zero
+    tokens. This is what Practice/Reading/prewarm use.
+    """
+    if not HAS_AI:
+        return None
+    cfg = dict(ai.get_config())
+    cfg["api_key"] = ""     # force cache-only: cache is read, API is skipped
+    return cfg
+
+
 def _get_analysis(question):
-    """Holistic AI analysis for this question, cached in session (shared with
-    ui.questions via the same '_ai_analysis' key)."""
+    """
+    Holistic AI analysis for a question, cached in session. CACHE-ONLY — never
+    spends tokens. Returns the prepared analysis if it exists on disk/session,
+    else None (caller falls back gracefully).
+    """
     if not HAS_AI:
         return None
     cache = st.session_state.setdefault("_ai_analysis", {})
@@ -55,7 +85,7 @@ def _get_analysis(question):
     if not any(os.path.exists(p) for p in question.get("images", [])):
         cache[k] = None
         return None
-    res = ai.analyze_question(question, _ai_cfg())
+    res = ai.analyze_question(question, _ai_cfg_cache_only())   # no tokens
     cache[k] = res if res.get("ok") else None
     return cache[k]
 
@@ -65,26 +95,66 @@ def _categorized_images(question):
     Return (reference_images, answer_images) for a case study.
 
     Uses the holistic AI analysis roles: 'answer_key' images are the answer
-    (hidden in practice); everything else is reference (tables/exhibits/question).
-    Falls back to a positional rule when there's no AI analysis: for 2+ images
-    the LAST one is treated as the answer key.
+    (hidden in practice); everything else is reference. Falls back to a
+    positional rule when there's no AI analysis: for 2+ images the LAST one is
+    the answer key.
     """
     imgs = [p for p in question.get("images", []) if os.path.exists(p)]
     if not imgs:
         return [], []
 
-    analysis = _get_analysis(question)
+    analysis = _get_analysis(question)      # cache-only, free
     roles = (analysis or {}).get("roles") if analysis else None
     if roles:
         answer = [p for p in imgs if roles.get(p) == "answer_key"]
         reference = [p for p in imgs if p not in answer]
-        if reference:                     # never hide everything
+        if reference:                       # never hide everything
             return reference, answer
 
     # Fallback: positional rule.
     if len(imgs) >= 2:
         return imgs[:-1], imgs[-1:]
     return imgs, []
+
+
+# ---------------------------------------------------------------------------
+# One-click exam preparation (the ONLY place tokens are spent)
+# ---------------------------------------------------------------------------
+
+def _prepare_exam_ui(exam_name):
+    """Run the full prepare_exam pipeline with a live progress bar + summary.
+    This is the only path that calls OpenAI (spends tokens)."""
+    bar = st.progress(0.0)
+    status = st.empty()
+
+    def _prog(frac, msg):
+        bar.progress(min(max(frac, 0.0), 1.0))
+        status.caption(f"⚙️ {msg}")
+
+    with st.spinner(f"Preparing {exam_name}..."):
+        summary = exam_prep.prepare_exam(exam_name, cfg=_ai_cfg(), progress=_prog)
+
+    bar.empty()
+    status.empty()
+
+    if summary["questions"] == 0:
+        st.error(f"No questions could be parsed from **{exam_name}**.")
+        return summary
+
+    st.success(
+        f"✅ **{exam_name}** is ready! "
+        f"{summary['questions']} questions · "
+        f"{summary['with_images']} with images · "
+        f"{summary['with_community']} with discussions · "
+        f"{summary['ai_analysed']} AI-analysed."
+    )
+    if not summary["ai_available"]:
+        st.info("💡 AI wasn't configured, so image questions use manual/fallback "
+                "rendering. Add OPENAI_API_KEY to enable auto-built widgets.")
+    # New prepared data invalidates any stale in-session analysis.
+    st.session_state.pop("_ai_analysis", None)
+    st.session_state.pop("_prewarm_sig", None)
+    return summary
 
 
 # ---------------------------------------------------------------------------
@@ -108,27 +178,34 @@ def show_home_page():
             chosen = st.selectbox("Choose an exam", exam_names, key="lib_exam")
             detail = next(s for s in summary if s["exam"] == chosen)
             st.caption(f"📄 {detail['pdf_count']} PDF(s): " + ", ".join(detail["pdfs"]))
-            colA, colB = st.columns(2)
+            colA, colB, colC = st.columns(3)
             with colA:
                 if st.button("📚 Load this exam", type="primary", key="lib_load"):
                     _load_exam_with_progress(chosen, force=False)
             with colB:
                 if st.button("🔄 Re-parse (ignore cache)", key="lib_reparse"):
                     _load_exam_with_progress(chosen, force=True)
-            st.caption("💡 Re-parse to capture community discussions for Reading mode "
-                       "from an exam loaded before that feature.")
+            with colC:
+                if st.button("⚙️ Prepare (AI + all)", key="lib_prepare"):
+                    _prepare_exam_ui(chosen)
+            st.caption("💡 **Prepare** (one-time, spends AI tokens) fully readies an "
+                       "exam: parses questions, captures discussions, extracts images, "
+                       "and runs AI. After that, **Load / Practice / Reading are free** "
+                       "— they only read the cached results.")
 
     with tab_add:
-        st.caption("Create a new exam folder and upload its PDF(s).")
+        st.caption("Create a new exam folder, upload its PDF(s), and fully "
+                   "prepare it in one step.")
         new_name = st.text_input("Exam name", placeholder="e.g. AZ-104", key="add_name")
         new_files = st.file_uploader("Exam PDF(s)", type=["pdf"],
                                      accept_multiple_files=True, key="add_files")
-        if st.button("➕ Create exam", type="primary", key="add_create"):
+        if st.button("➕ Create & prepare exam", type="primary", key="add_create"):
             try:
                 folder, saved = lib.add_exam(new_name, new_files or [])
                 st.success(f"Created **{new_name}** with {len(saved)} PDF(s): "
                            + ", ".join(saved))
-                st.caption("Switch to **📚 Question Library** to load it.")
+                _prepare_exam_ui(new_name)
+                st.caption("Go to **📚 Question Library** to start practising.")
             except ValueError as e:
                 st.error(str(e))
 
@@ -165,6 +242,9 @@ def _load_exam_with_progress(exam, force):
         st.error(f"No questions found for {exam}.")
         return
     st.success(f"Loaded {len(questions)} questions from {exam}.")
+    # Loading a different exam invalidates prior session analysis + prewarm.
+    st.session_state.pop("_ai_analysis", None)
+    st.session_state.pop("_prewarm_sig", None)
     load_questions_into_state(questions, exam, exam)
     st.rerun()
 
@@ -264,28 +344,38 @@ def show_mode_page():
 
 
 def _prewarm_ai(questions):
-    """Pre-analyse all image questions once with the holistic analyzer so
-    practice/reading is instant. Cached on disk + session; runs once per set."""
+    """
+    Load prepared AI analysis into the session dict so per-question rendering is
+    instant. CACHE-ONLY — never spends tokens. Guarded so it runs at most once
+    per (exam, mode, size); if nothing is cached on disk it simply does nothing.
+    """
     if not HAS_AI:
         return
-    analysis_cache = st.session_state.setdefault("_ai_analysis", {})
     targets = [q for q in questions
                if any(os.path.exists(p) for p in q.get("images", []))]
     if not targets:
         return
 
-    cfg = _ai_cfg()
+    # Skip if we've already warmed this exact set.
+    sig = (f"{st.session_state.get('exam_name')}|"
+           f"{st.session_state.get('exam_mode')}|{len(questions)}")
+    if st.session_state.get("_prewarm_sig") == sig:
+        return
+
+    analysis_cache = st.session_state.setdefault("_ai_analysis", {})
+    cfg = _ai_cfg_cache_only()        # cache-only: NO tokens
     bar = st.progress(0.0)
     status = st.empty()
-    status.caption("🤖 Preparing questions with AI (one-time, cached)...")
+    status.caption("📂 Loading prepared questions (from cache)...")
     for i, q in enumerate(targets):
         k = qid(q)
         if k not in analysis_cache:
-            res = ai.analyze_question(q, cfg)
+            res = ai.analyze_question(q, cfg)     # reads disk cache only
             analysis_cache[k] = res if res.get("ok") else None
         bar.progress((i + 1) / len(targets))
     status.empty()
     bar.empty()
+    st.session_state["_prewarm_sig"] = sig
 
 
 def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
@@ -309,7 +399,7 @@ def _start(exam_mode, sets, set_idx, timed, limit, app_mode, resume):
         if data:
             apply_progress_payload(data)
 
-    _prewarm_ai(questions)
+    _prewarm_ai(questions)     # cache-only, free
 
     st.session_state.show_mode = False
     st.session_state.quiz_started = True
@@ -407,7 +497,6 @@ def _render_case_study(q, idx, reading):
             if view == "__question__":
                 st.caption("Here is a question that is tied to this case study.")
                 render_stem(q)
-                # Answer image shown ONLY in reading mode.
                 if answer_imgs and reading:
                     with st.expander("🗝️ Answer area", expanded=True):
                         for p in answer_imgs:

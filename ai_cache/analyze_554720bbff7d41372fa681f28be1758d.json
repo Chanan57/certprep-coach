@@ -1,0 +1,45 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "When a user receives a poor performance review:",
+      "options": [
+        "Data leaks",
+        "Data theft by departing users",
+        "Security policy violations",
+        "Security policy violations by risky users"
+      ],
+      "correct": "Security policy violations by risky users"
+    },
+    {
+      "label": "When a user disables security features:",
+      "options": [
+        "Data leaks",
+        "Data theft by departing users",
+        "Security policy violations",
+        "Security policy violations by risky users"
+      ],
+      "correct": "Security policy violations"
+    }
+  ],
+  "explanation": "The correct templates are based on the specific risk indicators required for each scenario.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_726c6bb9831e.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_a6cd5a43e943.png": "answer_key"
+  },
+  "ok": true
+}

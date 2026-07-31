@@ -1,0 +1,19 @@
+{
+  "type": "CHOICE",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "exhibit"
+    }
+  ],
+  "correct_answer": "A",
+  "explanation": "The DLP policy may be blocking uploads to certain cloud services or restricting file activities based on specific conditions, leading to inconsistent user experiences.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "dropdowns": [],
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_1c362045b3dd.png": "exhibit"
+  },
+  "ok": true
+}

@@ -1,0 +1,43 @@
+{
+  "type": "HOTSPOT",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "question"
+    },
+    {
+      "index": 2,
+      "role": "answer_key"
+    }
+  ],
+  "dropdowns": [
+    {
+      "label": "For the VDI:",
+      "options": [
+        "Add the Defender for Endpoint onboarding script to the virtual machine template.",
+        "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO).",
+        "Onboard the virtual machine template to Defender for Endpoint."
+      ],
+      "correct": "Add the Defender for Endpoint onboarding script to the virtual machine template."
+    },
+    {
+      "label": "For Azure Virtual Desktop:",
+      "options": [
+        "Add the Defender for Endpoint onboarding script to the golden image.",
+        "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO).",
+        "Onboard the golden image to Defender for Endpoint."
+      ],
+      "correct": "Deploy Defender for Endpoint by using a custom Group Policy Object (GPO)."
+    }
+  ],
+  "explanation": "Using the onboarding script for the VDI ensures that Defender for Endpoint is set up during the first startup, while using a GPO for Azure Virtual Desktop minimizes administrative effort.",
+  "items": [],
+  "answer": [],
+  "answer_map": {},
+  "correct_answer": "",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_55989879bf25.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\dcfd31b761d32d725106918d330a910e\\img_01b9ccaad72a.png": "answer_key"
+  },
+  "ok": true
+}

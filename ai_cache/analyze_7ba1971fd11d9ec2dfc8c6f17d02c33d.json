@@ -1,0 +1,49 @@
+{
+  "type": "DRAG_DROP",
+  "image_roles": [
+    {
+      "index": 1,
+      "role": "table"
+    },
+    {
+      "index": 2,
+      "role": "table"
+    },
+    {
+      "index": 3,
+      "role": "table"
+    },
+    {
+      "index": 4,
+      "role": "question"
+    },
+    {
+      "index": 5,
+      "role": "answer_key"
+    }
+  ],
+  "items": [
+    "Create a sensitivity label.",
+    "Wait 24 hours and then turn on the policy.",
+    "Create a sensitive info type.",
+    "Create a retention label.",
+    "Create an auto-labeling policy."
+  ],
+  "answer": [
+    "Create a sensitive info type.",
+    "Create a sensitivity label.",
+    "Create an auto-labeling policy."
+  ],
+  "answer_map": {},
+  "dropdowns": [],
+  "correct_answer": "",
+  "explanation": "The correct order of actions is essential for implementing sensitivity labels and auto-labeling policies effectively.",
+  "roles": {
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_4f034d392326.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_ddb54ed14f6c.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_e800217208dd.png": "table",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_6e6a1e2b3a41.png": "question",
+    "C:\\Dev\\certprep-coach\\.cache\\images\\fdc3b4e5b55421c3ecd1043f6d1e43ab\\img_794ca973a1f5.png": "answer_key"
+  },
+  "ok": true
+}
